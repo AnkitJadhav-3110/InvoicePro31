@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Mail, Phone, MapPin, FileText } from 'lucide-react';
-import { useStore } from '@/store/useStore';
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Phone, MapPin, FileText, FileDown } from 'lucide-react';
+import { useStore, Client } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
@@ -21,8 +21,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Client } from '@/store/useStore';
 import { toast } from 'sonner';
+import { exportClientsToCSV } from '@/utils/csvExport';
 
 export default function Clients() {
   const { clients, invoices, addClient, updateClient, deleteClient } = useStore();
@@ -110,16 +110,31 @@ export default function Clients() {
     toast.success('Client deleted');
   };
 
+  const handleExportCSV = () => {
+    if (clients.length === 0) {
+      toast.error('No clients to export');
+      return;
+    }
+    exportClientsToCSV(clients, invoices);
+    toast.success('Clients exported to CSV');
+  };
+
   return (
     <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="Clients"
         description="Manage your client database"
         action={
-          <Button onClick={() => handleOpenDialog()} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Add Client
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={handleExportCSV} className="gap-2">
+              <FileDown className="w-4 h-4" />
+              <span className="hidden sm:inline">Export CSV</span>
+            </Button>
+            <Button onClick={() => handleOpenDialog()} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add Client
+            </Button>
+          </div>
         }
       />
 
@@ -146,25 +161,25 @@ export default function Clients() {
           }}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredClients.map(client => (
             <Card key={client.id} className="shadow-card hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-lg font-semibold text-primary">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <span className="text-base sm:text-lg font-semibold text-primary">
                         {client.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{client.name}</h3>
-                      <p className="text-sm text-muted-foreground">{client.email}</p>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-foreground truncate">{client.name}</h3>
+                      <p className="text-sm text-muted-foreground truncate">{client.email}</p>
                     </div>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" className="shrink-0">
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -187,25 +202,25 @@ export default function Clients() {
                 <div className="space-y-2 text-sm">
                   {client.phone && (
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone className="w-4 h-4" />
-                      <span>{client.phone}</span>
+                      <Phone className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{client.phone}</span>
                     </div>
                   )}
                   {client.city && (
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="w-4 h-4" />
-                      <span>{client.city}</span>
+                      <MapPin className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{client.city}</span>
                     </div>
                   )}
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                   <div className="text-center">
-                    <p className="text-lg font-semibold text-foreground">{getClientInvoiceCount(client.id)}</p>
+                    <p className="text-base sm:text-lg font-semibold text-foreground">{getClientInvoiceCount(client.id)}</p>
                     <p className="text-xs text-muted-foreground">Invoices</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-semibold text-foreground">
+                    <p className="text-base sm:text-lg font-semibold text-foreground">
                       ${getClientRevenue(client.id).toLocaleString()}
                     </p>
                     <p className="text-xs text-muted-foreground">Revenue</p>
@@ -219,12 +234,12 @@ export default function Clients() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingClient ? 'Edit Client' : 'Add New Client'}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name *</Label>
                 <Input
@@ -245,7 +260,7 @@ export default function Clients() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
                 <Input
@@ -274,7 +289,7 @@ export default function Clients() {
                 placeholder="Street address"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
                 <Input
@@ -305,11 +320,11 @@ export default function Clients() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} className="w-full sm:w-auto">
               {editingClient ? 'Update' : 'Add'} Client
             </Button>
           </DialogFooter>
