@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Search,
   Filter,
@@ -7,11 +7,12 @@ import {
   Copy,
   Trash2,
   MoreHorizontal,
-  Eye,
   FileText,
   CheckCircle,
   Clock,
   AlertCircle,
+  FileDown,
+  Plus,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
@@ -32,6 +33,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   Select,
@@ -42,6 +44,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { generateInvoicePDF } from '@/utils/pdfGenerator';
+import { exportInvoicesToCSV } from '@/utils/csvExport';
 
 export default function InvoiceHistory() {
   const navigate = useNavigate();
@@ -123,15 +126,33 @@ export default function InvoiceHistory() {
     toast.success('Invoice marked as paid');
   };
 
+  const handleExportCSV = () => {
+    if (filteredInvoices.length === 0) {
+      toast.error('No invoices to export');
+      return;
+    }
+    exportInvoicesToCSV(filteredInvoices, clients, settings);
+    toast.success('Invoices exported to CSV');
+  };
+
   return (
     <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="Invoice History"
         description="View and manage all your invoices"
         action={
-          <Button onClick={() => navigate('/invoices/create')}>
-            Create Invoice
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={handleExportCSV} className="gap-2">
+              <FileDown className="w-4 h-4" />
+              <span className="hidden sm:inline">Export CSV</span>
+            </Button>
+            <Button asChild className="gap-2">
+              <Link to="/invoices/create">
+                <Plus className="w-4 h-4" />
+                Create Invoice
+              </Link>
+            </Button>
+          </div>
         }
       />
 
@@ -147,7 +168,7 @@ export default function InvoiceHistory() {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-full sm:w-[150px]">
             <Filter className="w-4 h-4 mr-2" />
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -160,7 +181,7 @@ export default function InvoiceHistory() {
           </SelectContent>
         </Select>
         <Select value={clientFilter} onValueChange={setClientFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="All Clients" />
           </SelectTrigger>
           <SelectContent>
@@ -195,93 +216,98 @@ export default function InvoiceHistory() {
         />
       ) : (
         <div className="border rounded-xl overflow-hidden shadow-card">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead>Invoice</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[70px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInvoices.map(invoice => {
-                const client = clients.find(c => c.id === invoice.clientId);
-                const statusConfig = getStatusConfig(invoice.status);
-                const StatusIcon = statusConfig.icon;
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead>Invoice</TableHead>
+                  <TableHead className="hidden sm:table-cell">Client</TableHead>
+                  <TableHead className="hidden md:table-cell">Date</TableHead>
+                  <TableHead className="hidden lg:table-cell">Due Date</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[70px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices.map(invoice => {
+                  const client = clients.find(c => c.id === invoice.clientId);
+                  const statusConfig = getStatusConfig(invoice.status);
+                  const StatusIcon = statusConfig.icon;
 
-                return (
-                  <TableRow key={invoice.id} className="hover:bg-muted/30">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-primary" />
+                  return (
+                    <TableRow key={invoice.id} className="hover:bg-muted/30">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <FileText className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{invoice.invoiceNumber}</p>
+                            <p className="text-xs text-muted-foreground capitalize sm:hidden truncate">
+                              {client?.name || 'Unknown'}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{invoice.invoiceNumber}</p>
-                          <p className="text-xs text-muted-foreground capitalize">{invoice.template}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <p className="font-medium">{client?.name || 'Unknown'}</p>
-                      <p className="text-xs text-muted-foreground">{client?.email}</p>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(invoice.createdAt)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(invoice.dueDate)}
-                    </TableCell>
-                    <TableCell className="font-semibold">
-                      {formatCurrency(invoice.total)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={statusConfig.variant} className="gap-1">
-                        <StatusIcon className="w-3 h-3" />
-                        {statusConfig.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleDownload(invoice.id)}>
-                            <Download className="w-4 h-4 mr-2" />
-                            Download PDF
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDuplicate(invoice.id)}>
-                            <Copy className="w-4 h-4 mr-2" />
-                            Duplicate
-                          </DropdownMenuItem>
-                          {invoice.status !== 'paid' && (
-                            <DropdownMenuItem onClick={() => handleMarkPaid(invoice.id)}>
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Mark as Paid
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <p className="font-medium truncate">{client?.name || 'Unknown'}</p>
+                        <p className="text-xs text-muted-foreground truncate">{client?.email}</p>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-muted-foreground">
+                        {formatDate(invoice.createdAt)}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell text-muted-foreground">
+                        {formatDate(invoice.dueDate)}
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        {formatCurrency(invoice.total)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={statusConfig.variant} className="gap-1">
+                          <StatusIcon className="w-3 h-3" />
+                          <span className="hidden sm:inline">{statusConfig.label}</span>
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleDownload(invoice.id)}>
+                              <Download className="w-4 h-4 mr-2" />
+                              Download PDF
                             </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(invoice.id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                            <DropdownMenuItem onClick={() => handleDuplicate(invoice.id)}>
+                              <Copy className="w-4 h-4 mr-2" />
+                              Duplicate
+                            </DropdownMenuItem>
+                            {invoice.status !== 'paid' && (
+                              <DropdownMenuItem onClick={() => handleMarkPaid(invoice.id)}>
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Mark as Paid
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(invoice.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
     </div>
