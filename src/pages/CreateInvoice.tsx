@@ -8,7 +8,8 @@ import {
   Eye,
   Save,
 } from 'lucide-react';
-import { useStore, InvoiceItem, InvoiceTemplate } from '@/store/useStore';
+import { useStore } from '@/store/useStore';
+import type { InvoiceItem, InvoiceTemplate } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +25,6 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { InvoicePreview } from '@/components/invoice/InvoicePreview';
 import { generateInvoicePDF } from '@/utils/pdfGenerator';
 
 const templates: { id: InvoiceTemplate; name: string; description: string }[] = [
@@ -202,7 +202,7 @@ export default function CreateInvoice() {
         title="Create Invoice"
         description="Fill in the details to generate your invoice"
         action={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => handleSave('draft')}>
               <Save className="w-4 h-4 mr-2" />
               Save Draft
@@ -222,7 +222,7 @@ export default function CreateInvoice() {
               <CardTitle className="text-lg">Invoice Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Invoice Number</Label>
                   <Input
@@ -239,7 +239,7 @@ export default function CreateInvoice() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Payment Terms</Label>
                   <Select value={paymentTerm} onValueChange={setPaymentTerm}>
@@ -309,7 +309,7 @@ export default function CreateInvoice() {
                     value={item.description}
                     onChange={(e) => updateItem(item.id, 'description', e.target.value)}
                   />
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
                       <Label className="text-xs">Qty</Label>
                       <Input
@@ -448,28 +448,88 @@ export default function CreateInvoice() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-auto max-h-[800px] rounded-lg border">
-                <InvoicePreview
-                  invoice={{
-                    invoiceNumber,
-                    businessId: currentBusinessId || '',
-                    clientId: selectedClientId,
-                    items,
-                    subtotal: calculations.subtotal,
-                    taxTotal: calculations.taxTotal,
-                    discountTotal: calculations.discountTotal,
-                    total: calculations.total,
-                    template,
-                    createdAt: new Date(invoiceDate).toISOString(),
-                    dueDate: new Date(dueDate).toISOString(),
-                    notes,
-                    paymentQR,
-                    isPaid: showPaidStamp,
-                  }}
-                  business={currentBusiness}
-                  client={selectedClient}
-                  settings={settings}
-                />
+              <div className="overflow-auto max-h-[800px] rounded-lg border bg-muted/30 p-8">
+                <div className="bg-white rounded-lg shadow-lg p-6 min-h-[600px]">
+                  <div className="flex justify-between items-start mb-8">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">{currentBusiness?.name || 'Your Company'}</h2>
+                      <p className="text-sm text-gray-600">{currentBusiness?.email}</p>
+                      <p className="text-sm text-gray-600">{currentBusiness?.phone}</p>
+                    </div>
+                    <div className="text-right">
+                      <h1 className="text-2xl font-bold text-primary">INVOICE</h1>
+                      <p className="text-lg font-semibold">{invoiceNumber}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-8 mb-8">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 mb-2">Bill To</h3>
+                      <p className="font-semibold">{selectedClient?.name || 'Select a client'}</p>
+                      <p className="text-sm text-gray-600">{selectedClient?.email}</p>
+                      <p className="text-sm text-gray-600">{selectedClient?.address}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 mb-2">Details</h3>
+                      <p className="text-sm"><span className="text-gray-500">Date:</span> {invoiceDate}</p>
+                      <p className="text-sm"><span className="text-gray-500">Due:</span> {dueDate}</p>
+                    </div>
+                  </div>
+
+                  <table className="w-full mb-8">
+                    <thead>
+                      <tr className="border-b-2 border-gray-200">
+                        <th className="text-left py-2 text-sm font-semibold text-gray-600">Description</th>
+                        <th className="text-center py-2 text-sm font-semibold text-gray-600">Qty</th>
+                        <th className="text-right py-2 text-sm font-semibold text-gray-600">Price</th>
+                        <th className="text-right py-2 text-sm font-semibold text-gray-600">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((item) => (
+                        <tr key={item.id} className="border-b border-gray-100">
+                          <td className="py-3 text-sm">{item.description || 'Item description'}</td>
+                          <td className="py-3 text-sm text-center">{item.quantity}</td>
+                          <td className="py-3 text-sm text-right">{formatCurrency(item.price)}</td>
+                          <td className="py-3 text-sm text-right font-medium">
+                            {formatCurrency(item.quantity * item.price * (1 - item.discount / 100))}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  <div className="flex justify-end">
+                    <div className="w-64 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Subtotal</span>
+                        <span>{formatCurrency(calculations.subtotal)}</span>
+                      </div>
+                      {calculations.discountTotal > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Discount</span>
+                          <span className="text-red-500">-{formatCurrency(calculations.discountTotal)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Tax</span>
+                        <span>{formatCurrency(calculations.taxTotal)}</span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t text-lg font-bold text-primary">
+                        <span>Total</span>
+                        <span>{formatCurrency(calculations.total)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {showPaidStamp && (
+                    <div className="absolute top-20 right-20 transform rotate-12">
+                      <div className="border-4 border-green-500 text-green-500 px-6 py-2 rounded-lg text-2xl font-bold opacity-80">
+                        PAID
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
