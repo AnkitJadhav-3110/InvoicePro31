@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   DollarSign, 
   FileText, 
@@ -125,9 +125,11 @@ export default function Dashboard() {
         title="Dashboard"
         description="Overview of your invoicing activity"
         action={
-          <Button onClick={() => navigate('/invoices/create')} className="gap-2">
-            <Plus className="w-4 h-4" />
-            New Invoice
+          <Button asChild className="gap-2">
+            <Link to="/invoices/create">
+              <Plus className="w-4 h-4" />
+              New Invoice
+            </Link>
           </Button>
         }
       />
