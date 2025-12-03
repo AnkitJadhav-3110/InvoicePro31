@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Business } from '@/types';
+import { Business } from '@/store/useStore';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -41,7 +41,7 @@ export default function BusinessPage() {
     logo: '',
     signature: '',
     accentColor: '#3b82f6',
-    font: 'inter' as const,
+    font: 'inter' as 'inter' | 'roboto' | 'poppins',
     footerText: 'Thank you for your business!',
   });
 
@@ -359,8 +359,8 @@ export default function BusinessPage() {
                 <Label htmlFor="font">Font</Label>
                 <Select
                   value={formData.font}
-                  onValueChange={(value: 'inter' | 'roboto' | 'poppins') =>
-                    setFormData({ ...formData, font: value })
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, font: value as 'inter' | 'roboto' | 'poppins' })
                   }
                 >
                   <SelectTrigger>

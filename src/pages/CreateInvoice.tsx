@@ -7,11 +7,8 @@ import {
   Download,
   Eye,
   Save,
-  Calendar,
-  QrCode,
-  CheckCircle,
 } from 'lucide-react';
-import { useStore } from '@/store/useStore';
+import { useStore, InvoiceItem, InvoiceTemplate } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,9 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { InvoiceItem, InvoiceTemplate } from '@/types';
 import { InvoicePreview } from '@/components/invoice/InvoicePreview';
 import { generateInvoicePDF } from '@/utils/pdfGenerator';
 
@@ -61,7 +56,7 @@ export default function CreateInvoice() {
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [selectedClientId, setSelectedClientId] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
-  const [paymentTerm, setPaymentTerm] = useState(settings.defaultPaymentTerms);
+  const [paymentTerm, setPaymentTerm] = useState<string>(settings.defaultPaymentTerms);
   const [dueDate, setDueDate] = useState('');
   const [template, setTemplate] = useState<InvoiceTemplate>('minimal');
   const [notes, setNotes] = useState('');
@@ -221,9 +216,7 @@ export default function CreateInvoice() {
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Form */}
         <div className="space-y-6">
-          {/* Invoice Details */}
           <Card className="shadow-card">
             <CardHeader>
               <CardTitle className="text-lg">Invoice Details</CardTitle>
@@ -289,7 +282,6 @@ export default function CreateInvoice() {
             </CardContent>
           </Card>
 
-          {/* Items */}
           <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg">Line Items</CardTitle>
@@ -361,7 +353,6 @@ export default function CreateInvoice() {
                 </div>
               ))}
 
-              {/* Totals */}
               <div className="pt-4 border-t space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
@@ -385,7 +376,6 @@ export default function CreateInvoice() {
             </CardContent>
           </Card>
 
-          {/* Options */}
           <Card className="shadow-card">
             <CardHeader>
               <CardTitle className="text-lg">Additional Options</CardTitle>
@@ -424,7 +414,6 @@ export default function CreateInvoice() {
             </CardContent>
           </Card>
 
-          {/* Template Selection */}
           <Card className="shadow-card">
             <CardHeader>
               <CardTitle className="text-lg">Template</CardTitle>
@@ -450,7 +439,6 @@ export default function CreateInvoice() {
           </Card>
         </div>
 
-        {/* Preview */}
         <div className="xl:sticky xl:top-24 h-fit">
           <Card className="shadow-card">
             <CardHeader>

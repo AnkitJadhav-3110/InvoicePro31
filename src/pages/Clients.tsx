@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Client } from '@/types';
+import { Client } from '@/store/useStore';
 import { toast } from 'sonner';
 
 export default function Clients() {

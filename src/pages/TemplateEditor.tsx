@@ -1,20 +1,12 @@
 import { useState, useRef } from 'react';
-import { Upload, Plus, Trash2, Save, Move, Type } from 'lucide-react';
+import { Upload, Plus, Trash2, Save, Move } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useStore } from '@/store/useStore';
+import { useStore, FieldMapping } from '@/store/useStore';
 import { toast } from 'sonner';
-import { FieldMapping } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '@/lib/utils';
 
@@ -137,7 +129,6 @@ export default function TemplateEditor() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Controls */}
         <div className="space-y-4">
           <Card className="shadow-card">
             <CardHeader>
@@ -264,7 +255,6 @@ export default function TemplateEditor() {
           </Button>
         </div>
 
-        {/* Canvas */}
         <div className="lg:col-span-2">
           <Card className="shadow-card">
             <CardHeader>
@@ -326,7 +316,6 @@ export default function TemplateEditor() {
         </div>
       </div>
 
-      {/* Saved Templates */}
       {customTemplates.length > 0 && (
         <Card className="shadow-card">
           <CardHeader>
