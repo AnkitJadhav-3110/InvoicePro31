@@ -1,7 +1,6 @@
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
-import { Invoice, Client, Business, AppSettings } from '@/types';
+import { Invoice, Client, Business, AppSettings } from '@/store/useStore';
 
 export async function generateInvoicePDF(
   invoice: Invoice | Omit<Invoice, 'id'>,
@@ -27,7 +26,6 @@ export async function generateInvoicePDF(
     });
   };
 
-  // Set colors based on template
   const getColors = () => {
     switch (invoice.template) {
       case 'modern':
@@ -45,17 +43,14 @@ export async function generateInvoicePDF(
 
   const colors = getColors();
 
-  // Header
   pdf.setFillColor(colors.primary[0], colors.primary[1], colors.primary[2]);
   pdf.rect(0, 0, pageWidth, 45, 'F');
 
-  // Company name
   pdf.setTextColor(255, 255, 255);
   pdf.setFontSize(20);
   pdf.setFont('helvetica', 'bold');
   pdf.text(business.name, margin, 25);
 
-  // Invoice title
   pdf.setFontSize(28);
   pdf.text('INVOICE', pageWidth - margin, 20, { align: 'right' });
   pdf.setFontSize(12);
@@ -64,7 +59,6 @@ export async function generateInvoicePDF(
 
   y = 60;
 
-  // Paid stamp
   if (invoice.isPaid) {
     pdf.setTextColor(34, 197, 94);
     pdf.setFontSize(24);
@@ -75,7 +69,6 @@ export async function generateInvoicePDF(
     pdf.rect(pageWidth - margin - 50, 58, 40, 18);
   }
 
-  // From / To
   pdf.setTextColor(75, 85, 99);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'bold');
@@ -120,7 +113,6 @@ export async function generateInvoicePDF(
 
   y += Math.max(businessLines.length, clientLines.length) * 4 + 10;
 
-  // Dates
   pdf.setFillColor(249, 250, 251);
   pdf.rect(margin, y, pageWidth - margin * 2, 12, 'F');
   pdf.setTextColor(107, 114, 128);
@@ -135,7 +127,6 @@ export async function generateInvoicePDF(
 
   y += 20;
 
-  // Items table header
   pdf.setFillColor(colors.primary[0], colors.primary[1], colors.primary[2]);
   pdf.rect(margin, y, pageWidth - margin * 2, 8, 'F');
   pdf.setTextColor(255, 255, 255);
@@ -149,7 +140,6 @@ export async function generateInvoicePDF(
 
   y += 12;
 
-  // Items
   pdf.setTextColor(17, 24, 39);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9);
@@ -180,7 +170,6 @@ export async function generateInvoicePDF(
 
   y += 5;
 
-  // Totals
   const totalsX = pageWidth - margin - 60;
   pdf.setTextColor(107, 114, 128);
   pdf.setFontSize(9);
@@ -212,7 +201,6 @@ export async function generateInvoicePDF(
   pdf.text('TOTAL', totalsX, y + 2);
   pdf.text(formatCurrency(invoice.total), pageWidth - margin, y + 2, { align: 'right' });
 
-  // Notes
   if (invoice.notes) {
     y += 20;
     pdf.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
@@ -227,7 +215,6 @@ export async function generateInvoicePDF(
     pdf.text(notesLines, margin, y);
   }
 
-  // QR Code
   if (invoice.paymentQR) {
     try {
       const qrDataUrl = await QRCode.toDataURL(invoice.paymentQR, { width: 200, margin: 1 });
@@ -240,13 +227,11 @@ export async function generateInvoicePDF(
     }
   }
 
-  // Footer
   if (business.footerText) {
     pdf.setTextColor(156, 163, 175);
     pdf.setFontSize(8);
     pdf.text(business.footerText, pageWidth / 2, pageHeight - 15, { align: 'center' });
   }
 
-  // Save
   pdf.save(`${invoice.invoiceNumber}.pdf`);
 }

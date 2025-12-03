@@ -1,4 +1,4 @@
-import { Business, Client, InvoiceItem, InvoiceTemplate, AppSettings } from '@/types';
+import { Business, Client, InvoiceItem, InvoiceTemplate, AppSettings } from '@/store/useStore';
 import { cn } from '@/lib/utils';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
@@ -86,7 +86,7 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
           accent: 'text-teal-600',
           accentBg: 'bg-teal-50',
         };
-      default: // minimal
+      default:
         return {
           container: 'bg-white border border-gray-200',
           header: 'text-gray-900',
@@ -101,7 +101,6 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
 
   return (
     <div className={cn("invoice-template w-full min-h-[800px] relative", styles.container)}>
-      {/* Paid Stamp */}
       {invoice.isPaid && (
         <div className="absolute top-20 right-8 transform rotate-12 z-10">
           <div className="border-4 border-green-500 text-green-500 px-6 py-2 rounded-lg text-2xl font-bold opacity-80">
@@ -110,7 +109,6 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
         </div>
       )}
 
-      {/* Header */}
       <div className={cn("p-8", styles.header)}>
         <div className="flex justify-between items-start">
           <div>
@@ -128,9 +126,7 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
         </div>
       </div>
 
-      {/* Body */}
       <div className={cn("p-8", styles.body)}>
-        {/* Business & Client Info */}
         <div className="grid grid-cols-2 gap-8 mb-8">
           <div>
             <h3 className={cn("text-sm font-semibold mb-2 uppercase tracking-wide", styles.accent)}>From</h3>
@@ -158,7 +154,6 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
           </div>
         </div>
 
-        {/* Dates */}
         <div className={cn("flex gap-8 mb-8 p-4 rounded-lg", styles.accentBg)}>
           <div>
             <p className="text-xs uppercase tracking-wide text-gray-500">Invoice Date</p>
@@ -170,7 +165,6 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
           </div>
         </div>
 
-        {/* Items Table */}
         <div className="mb-8">
           <table className="w-full">
             <thead>
@@ -210,7 +204,6 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
           </table>
         </div>
 
-        {/* Totals */}
         <div className="flex justify-end mb-8">
           <div className="w-64 space-y-2">
             <div className="flex justify-between text-sm">
@@ -234,7 +227,6 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
           </div>
         </div>
 
-        {/* QR Code & Notes */}
         <div className="flex justify-between items-end">
           <div className="flex-1">
             {invoice.notes && (
@@ -252,14 +244,12 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
           )}
         </div>
 
-        {/* Footer */}
         {business?.footerText && (
           <div className="mt-8 pt-4 border-t border-gray-200 text-center">
             <p className="text-sm text-gray-500">{business.footerText}</p>
           </div>
         )}
 
-        {/* Signature */}
         {business?.signature && (
           <div className="mt-6 text-right">
             <img src={business.signature} alt="Signature" className="h-12 ml-auto" />

@@ -1,32 +1,115 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { Business, Client, Invoice, CustomTemplate, AppSettings, InvoiceItem, InvoiceTemplate } from '@/types';
+
+// Inline types to avoid cross-file dependency issues
+export interface Business {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  country: string;
+  taxId: string;
+  logo?: string;
+  signature?: string;
+  accentColor: string;
+  font: 'inter' | 'roboto' | 'poppins';
+  footerText: string;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  country: string;
+  taxId?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  price: number;
+  taxRate: number;
+  discount: number;
+}
+
+export type InvoiceTemplate = 'minimal' | 'modern' | 'corporate' | 'dark' | 'clean';
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  businessId: string;
+  clientId: string;
+  items: InvoiceItem[];
+  subtotal: number;
+  taxTotal: number;
+  discountTotal: number;
+  total: number;
+  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  template: InvoiceTemplate;
+  createdAt: string;
+  dueDate: string;
+  notes: string;
+  paymentQR?: string;
+  isPaid: boolean;
+}
+
+export interface FieldMapping {
+  fieldId: string;
+  fieldType: 'businessName' | 'clientName' | 'invoiceNumber' | 'date' | 'dueDate' | 'items' | 'subtotal' | 'tax' | 'total' | 'notes' | 'logo';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fontSize: number;
+  fontWeight: string;
+  color: string;
+}
+
+export interface CustomTemplate {
+  id: string;
+  name: string;
+  backgroundImage: string;
+  fieldMappings: FieldMapping[];
+  createdAt: string;
+}
+
+export interface AppSettings {
+  theme: 'light' | 'dark';
+  currency: string;
+  currencySymbol: string;
+  invoicePrefix: string;
+  invoiceSuffix: string;
+  defaultTaxRate: number;
+  defaultPaymentTerms: 'net7' | 'net15' | 'net30' | 'net60';
+}
 
 interface AppState {
-  // Data
   businesses: Business[];
   clients: Client[];
   invoices: Invoice[];
   customTemplates: CustomTemplate[];
   settings: AppSettings;
-
-  // Current selections
   currentBusinessId: string | null;
   currentInvoice: Partial<Invoice> | null;
 
-  // Business actions
   addBusiness: (business: Omit<Business, 'id'>) => string;
   updateBusiness: (id: string, business: Partial<Business>) => void;
   deleteBusiness: (id: string) => void;
   setCurrentBusiness: (id: string | null) => void;
 
-  // Client actions
   addClient: (client: Omit<Client, 'id' | 'createdAt'>) => string;
   updateClient: (id: string, client: Partial<Client>) => void;
   deleteClient: (id: string) => void;
 
-  // Invoice actions
   addInvoice: (invoice: Omit<Invoice, 'id'>) => string;
   updateInvoice: (id: string, invoice: Partial<Invoice>) => void;
   deleteInvoice: (id: string) => void;
@@ -34,12 +117,10 @@ interface AppState {
   setCurrentInvoice: (invoice: Partial<Invoice> | null) => void;
   getNextInvoiceNumber: () => string;
 
-  // Template actions
   addCustomTemplate: (template: Omit<CustomTemplate, 'id' | 'createdAt'>) => string;
   updateCustomTemplate: (id: string, template: Partial<CustomTemplate>) => void;
   deleteCustomTemplate: (id: string) => void;
 
-  // Settings actions
   updateSettings: (settings: Partial<AppSettings>) => void;
   toggleTheme: () => void;
 }
@@ -78,7 +159,6 @@ export const useStore = create<AppState>()(
       currentBusinessId: null,
       currentInvoice: null,
 
-      // Business actions
       addBusiness: (business) => {
         const id = uuidv4();
         set((state) => ({
@@ -110,7 +190,6 @@ export const useStore = create<AppState>()(
         set({ currentBusinessId: id });
       },
 
-      // Client actions
       addClient: (client) => {
         const id = uuidv4();
         set((state) => ({
@@ -133,7 +212,6 @@ export const useStore = create<AppState>()(
         }));
       },
 
-      // Invoice actions
       addInvoice: (invoice) => {
         const id = uuidv4();
         set((state) => ({
@@ -168,7 +246,7 @@ export const useStore = create<AppState>()(
               ...invoice,
               id: newId,
               invoiceNumber: newInvoiceNumber,
-              status: 'draft',
+              status: 'draft' as const,
               isPaid: false,
               createdAt: new Date().toISOString(),
             },
@@ -188,7 +266,6 @@ export const useStore = create<AppState>()(
         return `${settings.invoicePrefix}${paddedNumber}${settings.invoiceSuffix}`;
       },
 
-      // Template actions
       addCustomTemplate: (template) => {
         const id = uuidv4();
         set((state) => ({
@@ -214,7 +291,6 @@ export const useStore = create<AppState>()(
         }));
       },
 
-      // Settings actions
       updateSettings: (settings) => {
         set((state) => ({
           settings: { ...state.settings, ...settings },
@@ -236,14 +312,12 @@ export const useStore = create<AppState>()(
   )
 );
 
-// Initialize with demo data if empty
 export const initializeDemoData = () => {
   const state = useStore.getState();
   
   if (state.businesses.length === 0) {
     const businessId = state.addBusiness(defaultBusiness);
     
-    // Add demo clients
     const client1Id = state.addClient({
       name: 'Acme Corporation',
       email: 'billing@acme.com',
@@ -275,7 +349,6 @@ export const initializeDemoData = () => {
       taxId: 'GI-789012',
     });
 
-    // Add demo invoices
     const items1: InvoiceItem[] = [
       { id: uuidv4(), description: 'Website Design & Development', quantity: 1, price: 5000, taxRate: 10, discount: 0 },
       { id: uuidv4(), description: 'Logo Design Package', quantity: 1, price: 1500, taxRate: 10, discount: 10 },
