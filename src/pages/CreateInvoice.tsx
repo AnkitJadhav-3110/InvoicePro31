@@ -26,6 +26,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { generateInvoicePDF } from '@/utils/pdfGenerator';
+import { invoiceSchema, getFirstError } from '@/utils/validation';
 
 const templates: { id: InvoiceTemplate; name: string; description: string }[] = [
   { id: 'minimal', name: 'Minimal White', description: 'Clean and simple' },
@@ -132,12 +133,20 @@ export default function CreateInvoice() {
       toast.error('Please select a business profile');
       return;
     }
-    if (!selectedClientId) {
-      toast.error('Please select a client');
-      return;
-    }
-    if (items.some(item => !item.description || item.price <= 0)) {
-      toast.error('Please fill in all item details');
+
+    // Validate with Zod schema
+    const result = invoiceSchema.safeParse({
+      invoiceNumber,
+      clientId: selectedClientId,
+      invoiceDate,
+      dueDate,
+      notes,
+      paymentQR,
+      items,
+    });
+
+    if (!result.success) {
+      toast.error(getFirstError(result.error));
       return;
     }
 

@@ -25,6 +25,7 @@ import {
 import { Business } from '@/store/useStore';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { businessSchema, validateFile, getFirstError, MAX_FILE_SIZE, ACCEPTED_IMAGE_TYPES } from '@/utils/validation';
 
 export default function BusinessPage() {
   const { businesses, currentBusinessId, addBusiness, updateBusiness, deleteBusiness, setCurrentBusiness } = useStore();
@@ -83,8 +84,10 @@ export default function BusinessPage() {
   };
 
   const handleSave = () => {
-    if (!formData.name || !formData.email) {
-      toast.error('Please fill in required fields');
+    const result = businessSchema.safeParse(formData);
+    
+    if (!result.success) {
+      toast.error(getFirstError(result.error));
       return;
     }
 
@@ -108,9 +111,17 @@ export default function BusinessPage() {
   };
 
   const handleFileUpload = (field: 'logo' | 'signature', file: File) => {
+    const validation = validateFile(file);
+    
+    if (!validation.valid) {
+      toast.error(validation.error);
+      return;
+    }
+    
     const reader = new FileReader();
     reader.onload = (e) => {
       setFormData({ ...formData, [field]: e.target?.result as string });
+      toast.success(`${field === 'logo' ? 'Logo' : 'Signature'} uploaded successfully`);
     };
     reader.readAsDataURL(file);
   };
