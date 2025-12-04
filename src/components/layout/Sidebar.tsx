@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -52,19 +52,19 @@ export function Sidebar({ collapsed, onToggle, isMobileOpen, onMobileClose }: Si
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-fade-in"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden animate-fade-in"
           onClick={onMobileClose}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-screen bg-sidebar border-r border-sidebar-border flex flex-col",
-          "transition-all duration-300 ease-in-out",
-          // Desktop styles
+          "fixed left-0 top-0 z-50 h-screen flex flex-col",
+          "bg-card border-r border-border shadow-lg",
+          "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
           "hidden lg:flex",
-          collapsed ? "lg:w-16" : "lg:w-64",
+          collapsed ? "lg:w-[72px]" : "lg:w-64",
         )}
       >
         <SidebarContent 
@@ -79,8 +79,9 @@ export function Sidebar({ collapsed, onToggle, isMobileOpen, onMobileClose }: Si
       {/* Mobile Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-screen w-64 bg-sidebar border-r border-sidebar-border flex flex-col",
-          "transition-transform duration-300 ease-in-out lg:hidden",
+          "fixed left-0 top-0 z-50 h-screen w-72 flex flex-col",
+          "bg-card border-r border-border shadow-2xl",
+          "transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:hidden",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -116,25 +117,32 @@ function SidebarContent({
   showMobileClose,
   onMobileClose 
 }: SidebarContentProps) {
+  const location = useLocation();
+
   return (
     <>
-      {/* Logo */}
-      <div className={cn(
-        "h-16 flex items-center border-b border-sidebar-border px-4",
-        collapsed ? "justify-center" : "justify-between"
-      )}>
+      {/* Logo Header - Fixed */}
+      <div 
+        className={cn(
+          "h-16 flex items-center border-b border-border px-4 flex-shrink-0",
+          collapsed ? "justify-center" : "justify-between"
+        )}
+      >
         <button 
           onClick={onLogoClick}
           className={cn(
-            "flex items-center gap-2 hover:opacity-80 transition-opacity",
+            "flex items-center gap-3 transition-all duration-200",
+            "hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg",
             collapsed ? "justify-center" : ""
           )}
         >
-          <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-md">
+          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-md flex-shrink-0">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           {!collapsed && (
-            <span className="font-bold text-lg text-foreground">InvoicePro</span>
+            <span className="font-bold text-lg tracking-tight text-foreground">
+              InvoicePro
+            </span>
           )}
         </button>
         {showMobileClose && (
@@ -142,53 +150,69 @@ function SidebarContent({
             variant="ghost"
             size="icon"
             onClick={onMobileClose}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-foreground hover:bg-accent"
           >
             <X className="w-5 h-5" />
           </Button>
         )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-        {navItems.map((item) => (
-          <Tooltip key={item.path} delayDuration={0}>
-            <TooltipTrigger asChild>
-              <NavLink
-                to={item.path}
-                onClick={onNavClick}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative",
-                    collapsed ? "justify-center" : "",
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "text-foreground/80 hover:bg-accent hover:text-accent-foreground"
-                  )
-                }
-              >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
-                {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
-              </NavLink>
-            </TooltipTrigger>
-            {collapsed && (
-              <TooltipContent side="right" className="font-medium bg-popover text-popover-foreground border border-border">
-                {item.label}
-              </TooltipContent>
-            )}
-          </Tooltip>
-        ))}
+      {/* Navigation - Scrollable */}
+      <nav className="flex-1 py-4 px-3 overflow-y-auto">
+        <div className="space-y-1">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            const Icon = item.icon;
+            
+            return (
+              <Tooltip key={item.path} delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <Link
+                    to={item.path}
+                    onClick={onNavClick}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
+                      "font-medium text-sm no-underline",
+                      collapsed ? "justify-center px-2" : "",
+                      isActive
+                        ? "bg-primary text-white shadow-md"
+                        : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    <Icon className={cn(
+                      "w-5 h-5 flex-shrink-0 transition-transform duration-200",
+                      "group-hover:scale-110"
+                    )} />
+                    {!collapsed && (
+                      <span className="truncate">{item.label}</span>
+                    )}
+                  </Link>
+                </TooltipTrigger>
+                {collapsed && (
+                  <TooltipContent 
+                    side="right" 
+                    className="font-medium bg-popover text-popover-foreground border border-border shadow-lg"
+                    sideOffset={8}
+                  >
+                    {item.label}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            );
+          })}
+        </div>
       </nav>
 
       {/* Toggle Button - Desktop Only */}
       {showToggle && (
-        <div className="p-3 border-t border-sidebar-border">
+        <div className="p-3 border-t border-border flex-shrink-0">
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggle}
             className={cn(
-              "w-full flex items-center gap-2 text-foreground/80 hover:text-foreground hover:bg-accent",
+              "w-full flex items-center gap-2 transition-all duration-200",
+              "text-foreground hover:bg-accent hover:text-accent-foreground",
               collapsed ? "justify-center" : "justify-start"
             )}
           >
@@ -197,7 +221,7 @@ function SidebarContent({
             ) : (
               <>
                 <ChevronLeft className="w-4 h-4" />
-                <span className="text-sm">Collapse</span>
+                <span className="text-sm font-medium">Collapse</span>
               </>
             )}
           </Button>
