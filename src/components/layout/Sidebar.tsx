@@ -163,7 +163,7 @@ function SidebarContent({
                     collapsed ? "justify-center" : "",
                     isActive
                       ? "bg-primary text-primary-foreground shadow-md"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      : "text-foreground/80 hover:bg-accent hover:text-accent-foreground"
                   )
                 }
               >
@@ -188,7 +188,7 @@ function SidebarContent({
             size="sm"
             onClick={onToggle}
             className={cn(
-              "w-full flex items-center gap-2 text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent",
+              "w-full flex items-center gap-2 text-foreground/80 hover:text-foreground hover:bg-accent",
               collapsed ? "justify-center" : "justify-start"
             )}
           >
