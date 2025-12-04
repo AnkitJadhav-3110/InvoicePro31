@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { exportClientsToCSV } from '@/utils/csvExport';
+import { clientSchema, getFirstError } from '@/utils/validation';
 
 export default function Clients() {
   const { clients, invoices, addClient, updateClient, deleteClient } = useStore();
@@ -85,8 +86,10 @@ export default function Clients() {
   };
 
   const handleSave = () => {
-    if (!formData.name || !formData.email) {
-      toast.error('Please fill in required fields');
+    const result = clientSchema.safeParse(formData);
+    
+    if (!result.success) {
+      toast.error(getFirstError(result.error));
       return;
     }
 
