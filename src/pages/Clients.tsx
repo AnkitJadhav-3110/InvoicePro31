@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, Phone, MapPin, FileText, FileDown } from 'lucide-react';
 import { useStore, Client } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
@@ -19,11 +19,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { exportClientsToCSV } from '@/utils/csvExport';
-import { clientSchema, getFirstError } from '@/utils/validation';
+import { clientSchema, getErrorsObject } from '@/utils/validation';
+import { FormInput, FormTextarea } from '@/components/ui/form-field';
+import { z } from 'zod';
+
+type FormErrors = Partial<Record<keyof z.infer<typeof clientSchema>, string>>;
 
 export default function Clients() {
   const { clients, invoices, addClient, updateClient, deleteClient } = useStore();
@@ -40,6 +43,7 @@ export default function Clients() {
     taxId: '',
     notes: '',
   });
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -55,6 +59,30 @@ export default function Clients() {
       .filter(i => i.clientId === clientId && i.status === 'paid')
       .reduce((sum, i) => sum + i.total, 0);
   };
+
+  const validateField = useCallback((field: keyof typeof formData, value: string) => {
+    const testData = { ...formData, [field]: value };
+    const result = clientSchema.safeParse(testData);
+    
+    if (!result.success) {
+      const fieldError = result.error.errors.find(e => e.path[0] === field);
+      setErrors(prev => ({
+        ...prev,
+        [field]: fieldError?.message,
+      }));
+    } else {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  }, [formData]);
+
+  const handleFieldChange = useCallback((field: keyof typeof formData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    validateField(field, value);
+  }, [validateField]);
 
   const handleOpenDialog = (client?: Client) => {
     if (client) {
@@ -82,6 +110,7 @@ export default function Clients() {
         notes: '',
       });
     }
+    setErrors({});
     setIsDialogOpen(true);
   };
 
@@ -89,7 +118,8 @@ export default function Clients() {
     const result = clientSchema.safeParse(formData);
     
     if (!result.success) {
-      toast.error(getFirstError(result.error));
+      setErrors(getErrorsObject(result.error) as FormErrors);
+      toast.error('Please fix the errors in the form');
       return;
     }
 
@@ -243,85 +273,73 @@ export default function Clients() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Client name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="email@example.com"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+1 (555) 000-0000"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="taxId">Tax ID</Label>
-                <Input
-                  id="taxId"
-                  value={formData.taxId}
-                  onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
-                  placeholder="Tax identification"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="Street address"
+              <FormInput
+                label="Name"
+                required
+                value={formData.name}
+                onChange={(e) => handleFieldChange('name', e.target.value)}
+                onBlur={() => validateField('name', formData.name)}
+                placeholder="Client name"
+                error={errors.name}
+              />
+              <FormInput
+                label="Email"
+                required
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleFieldChange('email', e.target.value)}
+                onBlur={() => validateField('email', formData.email)}
+                placeholder="email@example.com"
+                error={errors.email}
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  placeholder="City, State ZIP"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  placeholder="Country"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Additional notes..."
-                rows={3}
+              <FormInput
+                label="Phone"
+                value={formData.phone}
+                onChange={(e) => handleFieldChange('phone', e.target.value)}
+                placeholder="+1 (555) 000-0000"
+                error={errors.phone}
+              />
+              <FormInput
+                label="Tax ID"
+                value={formData.taxId}
+                onChange={(e) => handleFieldChange('taxId', e.target.value)}
+                placeholder="Tax identification"
+                error={errors.taxId}
               />
             </div>
+            <FormInput
+              label="Address"
+              value={formData.address}
+              onChange={(e) => handleFieldChange('address', e.target.value)}
+              placeholder="Street address"
+              error={errors.address}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormInput
+                label="City"
+                value={formData.city}
+                onChange={(e) => handleFieldChange('city', e.target.value)}
+                placeholder="City, State ZIP"
+                error={errors.city}
+              />
+              <FormInput
+                label="Country"
+                value={formData.country}
+                onChange={(e) => handleFieldChange('country', e.target.value)}
+                placeholder="Country"
+                error={errors.country}
+              />
+            </div>
+            <FormTextarea
+              label="Notes"
+              value={formData.notes}
+              onChange={(e) => handleFieldChange('notes', e.target.value)}
+              placeholder="Additional notes..."
+              rows={3}
+              error={errors.notes}
+            />
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">

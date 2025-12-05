@@ -82,6 +82,24 @@ export interface CustomTemplate {
   createdAt: string;
 }
 
+export interface RecurringSchedule {
+  id: string;
+  clientId: string;
+  businessId: string;
+  frequency: 'weekly' | 'monthly' | 'yearly';
+  startDate: string;
+  endDate?: string;
+  nextGenerationDate: string;
+  isActive: boolean;
+  autoSend: boolean;
+  invoiceTemplate: {
+    items: InvoiceItem[];
+    notes: string;
+    template: InvoiceTemplate;
+  };
+  createdAt: string;
+}
+
 export interface AppSettings {
   theme: 'light' | 'dark';
   currency: string;
@@ -97,6 +115,7 @@ interface AppState {
   clients: Client[];
   invoices: Invoice[];
   customTemplates: CustomTemplate[];
+  recurringSchedules: RecurringSchedule[];
   settings: AppSettings;
   currentBusinessId: string | null;
   currentInvoice: Partial<Invoice> | null;
@@ -120,6 +139,11 @@ interface AppState {
   addCustomTemplate: (template: Omit<CustomTemplate, 'id' | 'createdAt'>) => string;
   updateCustomTemplate: (id: string, template: Partial<CustomTemplate>) => void;
   deleteCustomTemplate: (id: string) => void;
+
+  addRecurringSchedule: (schedule: Omit<RecurringSchedule, 'id' | 'createdAt'>) => string;
+  updateRecurringSchedule: (id: string, schedule: Partial<RecurringSchedule>) => void;
+  deleteRecurringSchedule: (id: string) => void;
+  processRecurringInvoices: () => void;
 
   updateSettings: (settings: Partial<AppSettings>) => void;
   toggleTheme: () => void;
@@ -155,6 +179,7 @@ export const useStore = create<AppState>()(
       clients: [],
       invoices: [],
       customTemplates: [],
+      recurringSchedules: [],
       settings: defaultSettings,
       currentBusinessId: null,
       currentInvoice: null,
@@ -289,6 +314,100 @@ export const useStore = create<AppState>()(
         set((state) => ({
           customTemplates: state.customTemplates.filter((t) => t.id !== id),
         }));
+      },
+
+      addRecurringSchedule: (schedule) => {
+        const id = uuidv4();
+        set((state) => ({
+          recurringSchedules: [
+            ...state.recurringSchedules,
+            { ...schedule, id, createdAt: new Date().toISOString() },
+          ],
+        }));
+        return id;
+      },
+
+      updateRecurringSchedule: (id, schedule) => {
+        set((state) => ({
+          recurringSchedules: state.recurringSchedules.map((s) =>
+            s.id === id ? { ...s, ...schedule } : s
+          ),
+        }));
+      },
+
+      deleteRecurringSchedule: (id) => {
+        set((state) => ({
+          recurringSchedules: state.recurringSchedules.filter((s) => s.id !== id),
+        }));
+      },
+
+      processRecurringInvoices: () => {
+        const state = get();
+        const now = new Date();
+        
+        state.recurringSchedules.forEach((schedule) => {
+          if (!schedule.isActive) return;
+          if (schedule.endDate && new Date(schedule.endDate) < now) return;
+          
+          const nextDate = new Date(schedule.nextGenerationDate);
+          if (nextDate > now) return;
+
+          // Generate the invoice
+          const invoiceNumber = state.getNextInvoiceNumber();
+          const dueDate = new Date(now);
+          dueDate.setDate(dueDate.getDate() + 30);
+
+          const subtotal = schedule.invoiceTemplate.items.reduce(
+            (sum, item) => sum + item.quantity * item.price,
+            0
+          );
+          const taxTotal = schedule.invoiceTemplate.items.reduce(
+            (sum, item) => sum + (item.quantity * item.price * item.taxRate) / 100,
+            0
+          );
+          const discountTotal = schedule.invoiceTemplate.items.reduce(
+            (sum, item) => sum + (item.quantity * item.price * item.discount) / 100,
+            0
+          );
+
+          state.addInvoice({
+            invoiceNumber,
+            businessId: schedule.businessId,
+            clientId: schedule.clientId,
+            items: schedule.invoiceTemplate.items.map((item) => ({
+              ...item,
+              id: uuidv4(),
+            })),
+            subtotal,
+            taxTotal,
+            discountTotal,
+            total: subtotal + taxTotal - discountTotal,
+            status: schedule.autoSend ? 'sent' : 'draft',
+            template: schedule.invoiceTemplate.template,
+            createdAt: now.toISOString(),
+            dueDate: dueDate.toISOString(),
+            notes: schedule.invoiceTemplate.notes,
+            isPaid: false,
+          });
+
+          // Calculate next generation date
+          let newNextDate = new Date(nextDate);
+          switch (schedule.frequency) {
+            case 'weekly':
+              newNextDate.setDate(newNextDate.getDate() + 7);
+              break;
+            case 'monthly':
+              newNextDate.setMonth(newNextDate.getMonth() + 1);
+              break;
+            case 'yearly':
+              newNextDate.setFullYear(newNextDate.getFullYear() + 1);
+              break;
+          }
+
+          state.updateRecurringSchedule(schedule.id, {
+            nextGenerationDate: newNextDate.toISOString(),
+          });
+        });
       },
 
       updateSettings: (settings) => {

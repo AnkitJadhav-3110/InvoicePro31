@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Building2, Pencil, Trash2, Check, Upload } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Plus, Building2, Pencil, Trash2 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -14,7 +14,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -25,7 +24,12 @@ import {
 import { Business } from '@/store/useStore';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { businessSchema, validateFile, getFirstError, MAX_FILE_SIZE, ACCEPTED_IMAGE_TYPES } from '@/utils/validation';
+import { businessSchema, getErrorsObject } from '@/utils/validation';
+import { FormInput, FormTextarea, FormField } from '@/components/ui/form-field';
+import { FileUpload } from '@/components/ui/file-upload';
+import { z } from 'zod';
+
+type FormErrors = Partial<Record<keyof z.infer<typeof businessSchema>, string>>;
 
 export default function BusinessPage() {
   const { businesses, currentBusinessId, addBusiness, updateBusiness, deleteBusiness, setCurrentBusiness } = useStore();
@@ -45,6 +49,33 @@ export default function BusinessPage() {
     font: 'inter' as 'inter' | 'roboto' | 'poppins',
     footerText: 'Thank you for your business!',
   });
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const validateField = useCallback((field: keyof typeof formData, value: string) => {
+    const testData = { ...formData, [field]: value };
+    const result = businessSchema.safeParse(testData);
+    
+    if (!result.success) {
+      const fieldError = result.error.errors.find(e => e.path[0] === field);
+      setErrors(prev => ({
+        ...prev,
+        [field]: fieldError?.message,
+      }));
+    } else {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  }, [formData]);
+
+  const handleFieldChange = useCallback((field: keyof typeof formData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (['name', 'email', 'accentColor'].includes(field)) {
+      validateField(field, value);
+    }
+  }, [validateField]);
 
   const handleOpenDialog = (business?: Business) => {
     if (business) {
@@ -80,6 +111,7 @@ export default function BusinessPage() {
         footerText: 'Thank you for your business!',
       });
     }
+    setErrors({});
     setIsDialogOpen(true);
   };
 
@@ -87,7 +119,8 @@ export default function BusinessPage() {
     const result = businessSchema.safeParse(formData);
     
     if (!result.success) {
-      toast.error(getFirstError(result.error));
+      setErrors(getErrorsObject(result.error) as FormErrors);
+      toast.error('Please fix the errors in the form');
       return;
     }
 
@@ -108,22 +141,6 @@ export default function BusinessPage() {
     }
     deleteBusiness(id);
     toast.success('Business deleted');
-  };
-
-  const handleFileUpload = (field: 'logo' | 'signature', file: File) => {
-    const validation = validateFile(file);
-    
-    if (!validation.valid) {
-      toast.error(validation.error);
-      return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setFormData({ ...formData, [field]: e.target?.result as string });
-      toast.success(`${field === 'logo' ? 'Logo' : 'Signature'} uploaded successfully`);
-    };
-    reader.readAsDataURL(file);
   };
 
   return (
@@ -246,128 +263,97 @@ export default function BusinessPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             {/* Logo Upload */}
-            <div className="space-y-2">
-              <Label>Company Logo</Label>
-              <div className="flex items-center gap-4">
-                {formData.logo ? (
-                  <img src={formData.logo} alt="Logo" className="w-16 h-16 rounded-lg object-cover" />
-                ) : (
-                  <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
-                    <Building2 className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                )}
-                <div>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    id="logo-upload"
-                    onChange={(e) => e.target.files?.[0] && handleFileUpload('logo', e.target.files[0])}
-                  />
-                  <Button variant="outline" size="sm" asChild>
-                    <label htmlFor="logo-upload" className="cursor-pointer">
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Logo
-                    </label>
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <FormField label="Company Logo">
+              <FileUpload
+                value={formData.logo}
+                onChange={(value) => handleFieldChange('logo', value)}
+                label="Upload logo"
+                previewType="square"
+              />
+            </FormField>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Business Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Your Company"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="hello@company.com"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+1 (555) 000-0000"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="taxId">Tax ID</Label>
-                <Input
-                  id="taxId"
-                  value={formData.taxId}
-                  onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
-                  placeholder="XX-XXXXXXX"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="123 Business Street"
+              <FormInput
+                label="Business Name"
+                required
+                value={formData.name}
+                onChange={(e) => handleFieldChange('name', e.target.value)}
+                onBlur={() => validateField('name', formData.name)}
+                placeholder="Your Company"
+                error={errors.name}
+              />
+              <FormInput
+                label="Email"
+                required
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleFieldChange('email', e.target.value)}
+                onBlur={() => validateField('email', formData.email)}
+                placeholder="hello@company.com"
+                error={errors.email}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  placeholder="New York, NY 10001"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  placeholder="United States"
-                />
-              </div>
+              <FormInput
+                label="Phone"
+                value={formData.phone}
+                onChange={(e) => handleFieldChange('phone', e.target.value)}
+                placeholder="+1 (555) 000-0000"
+                error={errors.phone}
+              />
+              <FormInput
+                label="Tax ID"
+                value={formData.taxId}
+                onChange={(e) => handleFieldChange('taxId', e.target.value)}
+                placeholder="XX-XXXXXXX"
+                error={errors.taxId}
+              />
+            </div>
+
+            <FormInput
+              label="Address"
+              value={formData.address}
+              onChange={(e) => handleFieldChange('address', e.target.value)}
+              placeholder="123 Business Street"
+              error={errors.address}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput
+                label="City"
+                value={formData.city}
+                onChange={(e) => handleFieldChange('city', e.target.value)}
+                placeholder="New York, NY 10001"
+                error={errors.city}
+              />
+              <FormInput
+                label="Country"
+                value={formData.country}
+                onChange={(e) => handleFieldChange('country', e.target.value)}
+                placeholder="United States"
+                error={errors.country}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="accentColor">Accent Color</Label>
+              <FormField label="Accent Color" error={errors.accentColor}>
                 <div className="flex gap-2">
                   <Input
-                    id="accentColor"
                     type="color"
                     value={formData.accentColor}
-                    onChange={(e) => setFormData({ ...formData, accentColor: e.target.value })}
+                    onChange={(e) => handleFieldChange('accentColor', e.target.value)}
                     className="w-12 h-10 p-1 cursor-pointer"
                   />
                   <Input
                     value={formData.accentColor}
-                    onChange={(e) => setFormData({ ...formData, accentColor: e.target.value })}
-                    className="flex-1"
+                    onChange={(e) => handleFieldChange('accentColor', e.target.value)}
+                    onBlur={() => validateField('accentColor', formData.accentColor)}
+                    className={cn("flex-1", errors.accentColor && "border-destructive")}
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="font">Font</Label>
+              </FormField>
+              <FormField label="Font">
                 <Select
                   value={formData.font}
                   onValueChange={(value) =>
@@ -383,48 +369,27 @@ export default function BusinessPage() {
                     <SelectItem value="poppins">Poppins</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </FormField>
             </div>
 
             {/* Signature Upload */}
-            <div className="space-y-2">
-              <Label>Digital Signature</Label>
-              <div className="flex items-center gap-4">
-                {formData.signature ? (
-                  <img src={formData.signature} alt="Signature" className="h-12 object-contain" />
-                ) : (
-                  <div className="h-12 px-4 rounded-lg bg-muted flex items-center">
-                    <span className="text-sm text-muted-foreground">No signature</span>
-                  </div>
-                )}
-                <div>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    id="signature-upload"
-                    onChange={(e) => e.target.files?.[0] && handleFileUpload('signature', e.target.files[0])}
-                  />
-                  <Button variant="outline" size="sm" asChild>
-                    <label htmlFor="signature-upload" className="cursor-pointer">
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Signature
-                    </label>
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="footerText">Footer Text</Label>
-              <Textarea
-                id="footerText"
-                value={formData.footerText}
-                onChange={(e) => setFormData({ ...formData, footerText: e.target.value })}
-                placeholder="Thank you for your business!"
-                rows={2}
+            <FormField label="Digital Signature">
+              <FileUpload
+                value={formData.signature}
+                onChange={(value) => handleFieldChange('signature', value)}
+                label="Upload signature"
+                previewType="wide"
               />
-            </div>
+            </FormField>
+
+            <FormTextarea
+              label="Footer Text"
+              value={formData.footerText}
+              onChange={(e) => handleFieldChange('footerText', e.target.value)}
+              placeholder="Thank you for your business!"
+              rows={2}
+              error={errors.footerText}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
