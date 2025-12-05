@@ -7,6 +7,7 @@ import {
   Download,
   Eye,
   Save,
+  RefreshCw,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import type { InvoiceItem, InvoiceTemplate } from '@/store/useStore';
@@ -27,6 +28,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { generateInvoicePDF } from '@/utils/pdfGenerator';
 import { invoiceSchema, getFirstError } from '@/utils/validation';
+import { RecurringInvoiceDialog } from '@/components/recurring/RecurringInvoiceDialog';
 
 const templates: { id: InvoiceTemplate; name: string; description: string }[] = [
   { id: 'minimal', name: 'Minimal White', description: 'Clean and simple' },
@@ -66,6 +68,7 @@ export default function CreateInvoice() {
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: uuidv4(), description: '', quantity: 1, price: 0, taxRate: settings.defaultTaxRate, discount: 0 },
   ]);
+  const [showRecurringDialog, setShowRecurringDialog] = useState(false);
 
   const currentBusiness = businesses.find(b => b.id === currentBusinessId);
   const selectedClient = clients.find(c => c.id === selectedClientId);
@@ -212,6 +215,10 @@ export default function CreateInvoice() {
         description="Fill in the details to generate your invoice"
         action={
           <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setShowRecurringDialog(true)}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Make Recurring
+            </Button>
             <Button variant="outline" onClick={() => handleSave('draft')}>
               <Save className="w-4 h-4 mr-2" />
               Save Draft
@@ -222,6 +229,17 @@ export default function CreateInvoice() {
             </Button>
           </div>
         }
+      />
+
+      <RecurringInvoiceDialog
+        open={showRecurringDialog}
+        onOpenChange={setShowRecurringDialog}
+        clientId={selectedClientId}
+        invoiceData={{
+          items,
+          notes,
+          template,
+        }}
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

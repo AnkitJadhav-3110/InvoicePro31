@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Moon, Sun, Menu, Bell, Clock, AlertCircle, FileText, Sparkles } from 'lucide-react';
+import { Moon, Sun, Menu, Bell, Clock, AlertCircle, FileText, Sparkles, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
 import {
@@ -103,18 +103,27 @@ export function Header({ onMenuToggle }: HeaderProps) {
             <Menu className="w-5 h-5" />
           </Button>
           
-          {/* Mobile Logo */}
+          {/* InvoicePro Branding */}
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 lg:hidden"
+            className="flex items-center gap-2.5 group"
           >
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
+            <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+              <Receipt className="w-5 h-5 text-white" />
+            </div>
+            <div className="hidden sm:flex flex-col">
+              <span className="text-lg font-bold text-foreground tracking-tight leading-none">
+                Invoice<span className="text-primary">Pro</span>
+              </span>
+              <span className="text-[10px] text-muted-foreground leading-none">
+                Professional Invoicing
+              </span>
             </div>
           </button>
 
-          <div className="hidden sm:block">
-            <h1 className="text-lg sm:text-xl font-semibold text-foreground">{title}</h1>
+          {/* Page Title - Desktop */}
+          <div className="hidden lg:flex items-center gap-2 ml-4 pl-4 border-l border-border">
+            <h1 className="text-base font-medium text-muted-foreground">{title}</h1>
           </div>
         </div>
 
