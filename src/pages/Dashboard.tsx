@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { StatCard } from '@/components/ui/stat-card';
+import { UpcomingRecurringWidget } from '@/components/dashboard/UpcomingRecurringWidget';
+import { RecentActivityWidget } from '@/components/dashboard/RecentActivityWidget';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -318,6 +320,12 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Recurring & Activity Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <UpcomingRecurringWidget />
+        <RecentActivityWidget />
       </div>
     </div>
   );

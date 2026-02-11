@@ -13,6 +13,7 @@ import Clients from "@/pages/Clients";
 import Business from "@/pages/Business";
 import TemplateEditor from "@/pages/TemplateEditor";
 import BusinessTools from "@/pages/BusinessTools";
+import RecurringInvoices from "@/pages/RecurringInvoices";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 
@@ -38,6 +39,7 @@ function App() {
               <Route path="/business" element={<Business />} />
               <Route path="/templates" element={<TemplateEditor />} />
               <Route path="/tools" element={<BusinessTools />} />
+              <Route path="/recurring" element={<RecurringInvoices />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />

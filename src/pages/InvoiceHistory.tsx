@@ -13,6 +13,8 @@ import {
   AlertCircle,
   FileDown,
   Plus,
+  Mail,
+  Send,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
@@ -45,6 +47,7 @@ import {
 import { toast } from 'sonner';
 import { generateInvoicePDF } from '@/utils/pdfGenerator';
 import { exportInvoicesToCSV } from '@/utils/csvExport';
+import { sendInvoiceEmail } from '@/utils/emailService';
 
 export default function InvoiceHistory() {
   const navigate = useNavigate();
@@ -124,6 +127,26 @@ export default function InvoiceHistory() {
   const handleMarkPaid = (id: string) => {
     updateInvoice(id, { status: 'paid', isPaid: true });
     toast.success('Invoice marked as paid');
+  };
+
+  const handleMarkSent = (id: string) => {
+    updateInvoice(id, { status: 'sent' });
+    toast.success('Invoice marked as sent');
+  };
+
+  const handleSendEmail = (invoiceId: string) => {
+    const invoice = invoices.find(i => i.id === invoiceId);
+    if (!invoice) return;
+    const client = clients.find(c => c.id === invoice.clientId);
+    const business = businesses.find(b => b.id === invoice.businessId);
+    if (!client || !business) {
+      toast.error('Missing invoice data');
+      return;
+    }
+    sendInvoiceEmail({ invoice, business, client, currencySymbol: settings.currencySymbol });
+    if (invoice.status === 'draft') {
+      updateInvoice(invoiceId, { status: 'sent' });
+    }
   };
 
   const handleExportCSV = () => {
@@ -285,6 +308,16 @@ export default function InvoiceHistory() {
                               <Copy className="w-4 h-4 mr-2" />
                               Duplicate
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSendEmail(invoice.id)}>
+                              <Mail className="w-4 h-4 mr-2" />
+                              Send via Email
+                            </DropdownMenuItem>
+                            {invoice.status === 'draft' && (
+                              <DropdownMenuItem onClick={() => handleMarkSent(invoice.id)}>
+                                <Send className="w-4 h-4 mr-2" />
+                                Mark as Sent
+                              </DropdownMenuItem>
+                            )}
                             {invoice.status !== 'paid' && (
                               <DropdownMenuItem onClick={() => handleMarkPaid(invoice.id)}>
                                 <CheckCircle className="w-4 h-4 mr-2" />
