@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Moon, Sun, Globe, Hash, Percent, Receipt } from 'lucide-react';
+import { Moon, Sun, Globe, Hash, Percent, Receipt, Mail } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 const currencies = [
   // Major World Currencies
@@ -100,6 +101,13 @@ export default function Settings() {
     defaultPaymentTerms: settings.defaultPaymentTerms,
   });
 
+  const [emailSettings, setEmailSettings] = useState({
+    autoSendOnCreate: settings.email?.autoSendOnCreate ?? false,
+    autoSendRecurring: settings.email?.autoSendRecurring ?? true,
+    includePaymentLink: settings.email?.includePaymentLink ?? false,
+    emailFooter: settings.email?.emailFooter ?? 'Thank you for your business!',
+  });
+
   const handleCurrencyChange = (code: string) => {
     const currency = currencies.find(c => c.code === code);
     if (currency) {
@@ -112,7 +120,7 @@ export default function Settings() {
   };
 
   const handleSave = () => {
-    updateSettings(formData);
+    updateSettings({ ...formData, email: emailSettings });
     toast.success('Settings saved successfully');
   };
 
@@ -257,6 +265,58 @@ export default function Settings() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Email Notifications */}
+      <Card className="shadow-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="w-5 h-5" />
+            Email Notifications
+          </CardTitle>
+          <CardDescription>Control when and how invoice emails are sent</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm">Auto-send on create</p>
+              <p className="text-xs text-muted-foreground">Open email draft when creating a new invoice</p>
+            </div>
+            <Switch
+              checked={emailSettings.autoSendOnCreate}
+              onCheckedChange={(v) => setEmailSettings({ ...emailSettings, autoSendOnCreate: v })}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm">Auto-send recurring</p>
+              <p className="text-xs text-muted-foreground">Auto-mark recurring invoices as sent when generated</p>
+            </div>
+            <Switch
+              checked={emailSettings.autoSendRecurring}
+              onCheckedChange={(v) => setEmailSettings({ ...emailSettings, autoSendRecurring: v })}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm">Include payment link</p>
+              <p className="text-xs text-muted-foreground">Add QR code payment link in email body</p>
+            </div>
+            <Switch
+              checked={emailSettings.includePaymentLink}
+              onCheckedChange={(v) => setEmailSettings({ ...emailSettings, includePaymentLink: v })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Email Footer</Label>
+            <Textarea
+              value={emailSettings.emailFooter}
+              onChange={(e) => setEmailSettings({ ...emailSettings, emailFooter: e.target.value })}
+              placeholder="Thank you for your business!"
+              rows={2}
+            />
           </div>
         </CardContent>
       </Card>

@@ -16,7 +16,7 @@ import {
   Mail,
   Send,
 } from 'lucide-react';
-import { useStore } from '@/store/useStore';
+import { useStore, Invoice } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
@@ -48,6 +48,14 @@ import { toast } from 'sonner';
 import { generateInvoicePDF } from '@/utils/pdfGenerator';
 import { exportInvoicesToCSV } from '@/utils/csvExport';
 import { sendInvoiceEmail } from '@/utils/emailService';
+import { InvoiceTimeline } from '@/components/invoice/InvoiceTimeline';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 export default function InvoiceHistory() {
   const navigate = useNavigate();
@@ -55,6 +63,7 @@ export default function InvoiceHistory() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
+  const [timelineInvoice, setTimelineInvoice] = useState<Invoice | null>(null);
 
   const filteredInvoices = useMemo(() => {
     return invoices
@@ -259,7 +268,7 @@ export default function InvoiceHistory() {
                   const StatusIcon = statusConfig.icon;
 
                   return (
-                    <TableRow key={invoice.id} className="hover:bg-muted/30">
+                    <TableRow key={invoice.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => setTimelineInvoice(invoice)}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -343,6 +352,25 @@ export default function InvoiceHistory() {
           </div>
         </div>
       )}
+
+      {/* Timeline Dialog */}
+      <Dialog open={!!timelineInvoice} onOpenChange={() => setTimelineInvoice(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Invoice Timeline</DialogTitle>
+            <DialogDescription>
+              {timelineInvoice?.invoiceNumber} — Status history
+            </DialogDescription>
+          </DialogHeader>
+          {timelineInvoice && (
+            <InvoiceTimeline
+              statusHistory={timelineInvoice.statusHistory}
+              createdAt={timelineInvoice.createdAt}
+              className="pt-2"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

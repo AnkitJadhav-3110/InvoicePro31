@@ -43,6 +43,11 @@ export interface InvoiceItem {
 
 export type InvoiceTemplate = 'minimal' | 'modern' | 'corporate' | 'dark' | 'clean';
 
+export interface InvoiceStatusEvent {
+  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  timestamp: string;
+}
+
 export interface Invoice {
   id: string;
   invoiceNumber: string;
@@ -54,6 +59,7 @@ export interface Invoice {
   discountTotal: number;
   total: number;
   status: 'draft' | 'sent' | 'paid' | 'overdue';
+  statusHistory?: InvoiceStatusEvent[];
   template: InvoiceTemplate;
   createdAt: string;
   dueDate: string;
@@ -100,6 +106,13 @@ export interface RecurringSchedule {
   createdAt: string;
 }
 
+export interface EmailSettings {
+  autoSendOnCreate: boolean;
+  autoSendRecurring: boolean;
+  includePaymentLink: boolean;
+  emailFooter: string;
+}
+
 export interface AppSettings {
   theme: 'light' | 'dark';
   currency: string;
@@ -108,6 +121,7 @@ export interface AppSettings {
   invoiceSuffix: string;
   defaultTaxRate: number;
   defaultPaymentTerms: 'net7' | 'net15' | 'net30' | 'net60';
+  email: EmailSettings;
 }
 
 interface AppState {
@@ -157,6 +171,12 @@ const defaultSettings: AppSettings = {
   invoiceSuffix: '',
   defaultTaxRate: 10,
   defaultPaymentTerms: 'net30',
+  email: {
+    autoSendOnCreate: false,
+    autoSendRecurring: true,
+    includePaymentLink: false,
+    emailFooter: 'Thank you for your business!',
+  },
 };
 
 const defaultBusiness: Omit<Business, 'id'> = {
@@ -239,17 +259,29 @@ export const useStore = create<AppState>()(
 
       addInvoice: (invoice) => {
         const id = uuidv4();
+        const now = new Date().toISOString();
+        const statusHistory: InvoiceStatusEvent[] = [
+          { status: invoice.status || 'draft', timestamp: now },
+        ];
         set((state) => ({
-          invoices: [...state.invoices, { ...invoice, id }],
+          invoices: [...state.invoices, { ...invoice, id, statusHistory }],
         }));
         return id;
       },
 
       updateInvoice: (id, invoice) => {
         set((state) => ({
-          invoices: state.invoices.map((i) =>
-            i.id === id ? { ...i, ...invoice } : i
-          ),
+          invoices: state.invoices.map((i) => {
+            if (i.id !== id) return i;
+            const updated = { ...i, ...invoice };
+            // Track status changes in history
+            if (invoice.status && invoice.status !== i.status) {
+              const history = [...(i.statusHistory || [])];
+              history.push({ status: invoice.status, timestamp: new Date().toISOString() });
+              updated.statusHistory = history;
+            }
+            return updated;
+          }),
         }));
       },
 
