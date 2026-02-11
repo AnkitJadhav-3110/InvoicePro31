@@ -23,6 +23,7 @@ const pageTitles: Record<string, string> = {
   '/business': 'Business Profiles',
   '/templates': 'Template Editor',
   '/tools': 'Business Tools',
+  '/recurring': 'Recurring Invoices',
   '/settings': 'Settings',
 };
 
