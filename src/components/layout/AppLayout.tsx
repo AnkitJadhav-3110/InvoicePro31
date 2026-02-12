@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { useStore } from '@/store/useStore';
+import { useSupabaseSync } from '@/hooks/useSupabaseData';
 import { cn } from '@/lib/utils';
 
 export function AppLayout() {
@@ -10,6 +11,7 @@ export function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { settings } = useStore();
   const location = useLocation();
+  useSupabaseSync();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', settings.theme === 'dark');

@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Moon, Sun, Menu, Bell, Clock, AlertCircle, FileText, Sparkles, Receipt } from 'lucide-react';
+import { Moon, Sun, Menu, Bell, Clock, AlertCircle, FileText, Sparkles, Receipt, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Popover,
   PopoverContent,
@@ -31,6 +32,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { settings, toggleTheme, invoices, clients } = useStore();
+  const { signOut } = useAuth();
   const title = pageTitles[location.pathname] || 'InvoicePro';
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
@@ -237,6 +239,17 @@ export function Header({ onMenuToggle }: HeaderProps) {
             ) : (
               <Moon className="w-5 h-5" />
             )}
+          </Button>
+
+          {/* Sign Out */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={signOut}
+            className="rounded-lg"
+            title="Sign out"
+          >
+            <LogOut className="w-5 h-5" />
           </Button>
         </div>
       </div>
