@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import {
   Plus,
@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { generateInvoicePDF } from '@/utils/pdfGenerator';
+import { downloadInvoicePDF } from '@/utils/pdfGenerator';
 import { invoiceSchema, getFirstError } from '@/utils/validation';
 import { RecurringInvoiceDialog } from '@/components/recurring/RecurringInvoiceDialog';
 
@@ -47,14 +47,21 @@ const paymentTerms = [
 
 export default function CreateInvoice() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+
   const {
     businesses,
     clients,
+    invoices,
     settings,
     currentBusinessId,
     getNextInvoiceNumber,
     addInvoice,
+    updateInvoice,
   } = useStore();
+
+  const editingInvoice = editId ? invoices.find(i => i.id === editId) : null;
 
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [selectedClientId, setSelectedClientId] = useState('');
@@ -70,21 +77,39 @@ export default function CreateInvoice() {
   ]);
   const [showRecurringDialog, setShowRecurringDialog] = useState(false);
 
+  // Load editing invoice data
+  useEffect(() => {
+    if (editingInvoice) {
+      setInvoiceNumber(editingInvoice.invoiceNumber);
+      setSelectedClientId(editingInvoice.clientId);
+      setInvoiceDate(new Date(editingInvoice.createdAt).toISOString().split('T')[0]);
+      setDueDate(new Date(editingInvoice.dueDate).toISOString().split('T')[0]);
+      setTemplate(editingInvoice.template);
+      setNotes(editingInvoice.notes);
+      setPaymentQR(editingInvoice.paymentQR || '');
+      setShowPaidStamp(editingInvoice.isPaid);
+      setItems(editingInvoice.items.map(item => ({ ...item })));
+    }
+  }, [editingInvoice]);
+
   const currentBusiness = businesses.find(b => b.id === currentBusinessId);
   const selectedClient = clients.find(c => c.id === selectedClientId);
 
   useEffect(() => {
-    setInvoiceNumber(getNextInvoiceNumber());
-  }, [getNextInvoiceNumber]);
+    if (!editId) {
+      setInvoiceNumber(getNextInvoiceNumber());
+    }
+  }, [getNextInvoiceNumber, editId]);
 
   useEffect(() => {
+    if (editId) return; // Don't auto-calculate due date when editing
     const term = paymentTerms.find(t => t.value === paymentTerm);
     if (term && invoiceDate) {
       const date = new Date(invoiceDate);
       date.setDate(date.getDate() + term.days);
       setDueDate(date.toISOString().split('T')[0]);
     }
-  }, [paymentTerm, invoiceDate]);
+  }, [paymentTerm, invoiceDate, editId]);
 
   const calculations = useMemo(() => {
     let subtotal = 0;
@@ -102,7 +127,6 @@ export default function CreateInvoice() {
     });
 
     const total = subtotal - discountTotal + taxTotal;
-
     return { subtotal, taxTotal, discountTotal, total };
   }, [items]);
 
@@ -137,7 +161,6 @@ export default function CreateInvoice() {
       return;
     }
 
-    // Validate with Zod schema
     const result = invoiceSchema.safeParse({
       invoiceNumber,
       clientId: selectedClientId,
@@ -153,7 +176,7 @@ export default function CreateInvoice() {
       return;
     }
 
-    addInvoice({
+    const invoiceData = {
       invoiceNumber,
       businessId: currentBusinessId,
       clientId: selectedClientId,
@@ -169,9 +192,15 @@ export default function CreateInvoice() {
       notes,
       paymentQR,
       isPaid: showPaidStamp,
-    });
+    };
 
-    toast.success(`Invoice ${status === 'draft' ? 'saved as draft' : 'created'}`);
+    if (editId && editingInvoice) {
+      updateInvoice(editId, invoiceData);
+      toast.success('Invoice updated successfully');
+    } else {
+      addInvoice(invoiceData);
+      toast.success(`Invoice ${status === 'draft' ? 'saved as draft' : 'created'}`);
+    }
     navigate('/invoices/history');
   };
 
@@ -182,7 +211,7 @@ export default function CreateInvoice() {
     }
 
     const invoice = {
-      id: '',
+      id: editId || '',
       invoiceNumber,
       businessId: currentBusinessId!,
       clientId: selectedClientId,
@@ -201,7 +230,7 @@ export default function CreateInvoice() {
     };
 
     try {
-      await generateInvoicePDF(invoice, selectedClient, currentBusiness, settings);
+      await downloadInvoicePDF(invoice, selectedClient, currentBusiness, settings);
       toast.success('Invoice downloaded');
     } catch (error) {
       toast.error('Failed to generate PDF');
@@ -211,17 +240,19 @@ export default function CreateInvoice() {
   return (
     <div className="space-y-6 animate-slide-up">
       <PageHeader
-        title="Create Invoice"
-        description="Fill in the details to generate your invoice"
+        title={editId ? 'Edit Invoice' : 'Create Invoice'}
+        description={editId ? `Editing ${invoiceNumber}` : 'Fill in the details to generate your invoice'}
         action={
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setShowRecurringDialog(true)}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Make Recurring
-            </Button>
+            {!editId && (
+              <Button variant="outline" onClick={() => setShowRecurringDialog(true)}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Make Recurring
+              </Button>
+            )}
             <Button variant="outline" onClick={() => handleSave('draft')}>
               <Save className="w-4 h-4 mr-2" />
-              Save Draft
+              {editId ? 'Update Invoice' : 'Save Draft'}
             </Button>
             <Button onClick={handleDownload}>
               <Download className="w-4 h-4 mr-2" />
@@ -255,6 +286,7 @@ export default function CreateInvoice() {
                   <Input
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
+                    disabled={!!editId}
                   />
                 </div>
                 <div className="space-y-2">
@@ -476,12 +508,17 @@ export default function CreateInvoice() {
             </CardHeader>
             <CardContent>
               <div className="overflow-auto max-h-[800px] rounded-lg border bg-muted/30 p-8">
-                <div className="bg-white rounded-lg shadow-lg p-6 min-h-[600px]">
+                <div className="bg-white rounded-lg shadow-lg p-6 min-h-[600px] relative">
                   <div className="flex justify-between items-start mb-8">
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900">{currentBusiness?.name || 'Your Company'}</h2>
-                      <p className="text-sm text-gray-600">{currentBusiness?.email}</p>
-                      <p className="text-sm text-gray-600">{currentBusiness?.phone}</p>
+                    <div className="flex items-center gap-3">
+                      {currentBusiness?.logo && (
+                        <img src={currentBusiness.logo} alt="Logo" className="w-12 h-12 object-contain rounded" />
+                      )}
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">{currentBusiness?.name || 'Your Company'}</h2>
+                        <p className="text-sm text-gray-600">{currentBusiness?.email}</p>
+                        <p className="text-sm text-gray-600">{currentBusiness?.phone}</p>
+                      </div>
                     </div>
                     <div className="text-right">
                       <h1 className="text-2xl font-bold text-primary">INVOICE</h1>
@@ -553,6 +590,15 @@ export default function CreateInvoice() {
                     <div className="absolute top-20 right-20 transform rotate-12">
                       <div className="border-4 border-green-500 text-green-500 px-6 py-2 rounded-lg text-2xl font-bold opacity-80">
                         PAID
+                      </div>
+                    </div>
+                  )}
+
+                  {currentBusiness?.signature && (
+                    <div className="mt-8 flex justify-end">
+                      <div className="text-center">
+                        <img src={currentBusiness.signature} alt="Signature" className="h-10 object-contain" />
+                        <p className="text-xs text-gray-500 mt-1">Authorized Signature</p>
                       </div>
                     </div>
                   )}

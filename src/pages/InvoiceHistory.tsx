@@ -15,6 +15,7 @@ import {
   Plus,
   Mail,
   Send,
+  Pencil,
 } from 'lucide-react';
 import { useStore, Invoice } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
@@ -44,10 +45,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { generateInvoicePDF } from '@/utils/pdfGenerator';
+import { downloadInvoicePDF } from '@/utils/pdfGenerator';
 import { exportInvoicesToCSV } from '@/utils/csvExport';
-import { sendInvoiceEmail } from '@/utils/emailService';
+import { sendInvoiceWithPDF } from '@/utils/emailService';
 import { InvoiceTimeline } from '@/components/invoice/InvoiceTimeline';
 import {
   Dialog,
@@ -64,6 +75,7 @@ export default function InvoiceHistory() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [timelineInvoice, setTimelineInvoice] = useState<Invoice | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const filteredInvoices = useMemo(() => {
     return invoices
@@ -101,6 +113,10 @@ export default function InvoiceHistory() {
     return configs[status] || configs.draft;
   };
 
+  const handleEdit = (id: string) => {
+    navigate(`/invoices/create?edit=${id}`);
+  };
+
   const handleDuplicate = (id: string) => {
     const newId = duplicateInvoice(id);
     if (newId) {
@@ -108,9 +124,12 @@ export default function InvoiceHistory() {
     }
   };
 
-  const handleDelete = (id: string) => {
-    deleteInvoice(id);
-    toast.success('Invoice deleted');
+  const handleConfirmDelete = () => {
+    if (deleteId) {
+      deleteInvoice(deleteId);
+      toast.success('Invoice deleted');
+      setDeleteId(null);
+    }
   };
 
   const handleDownload = async (invoiceId: string) => {
@@ -126,7 +145,7 @@ export default function InvoiceHistory() {
     }
 
     try {
-      await generateInvoicePDF(invoice, client, business, settings);
+      await downloadInvoicePDF(invoice, client, business, settings);
       toast.success('Invoice downloaded');
     } catch (error) {
       toast.error('Failed to generate PDF');
@@ -143,7 +162,7 @@ export default function InvoiceHistory() {
     toast.success('Invoice marked as sent');
   };
 
-  const handleSendEmail = (invoiceId: string) => {
+  const handleSendEmail = async (invoiceId: string) => {
     const invoice = invoices.find(i => i.id === invoiceId);
     if (!invoice) return;
     const client = clients.find(c => c.id === invoice.clientId);
@@ -152,7 +171,13 @@ export default function InvoiceHistory() {
       toast.error('Missing invoice data');
       return;
     }
-    sendInvoiceEmail({ invoice, business, client, currencySymbol: settings.currencySymbol });
+    await sendInvoiceWithPDF({
+      invoice,
+      business,
+      client,
+      currencySymbol: settings.currencySymbol,
+      settings,
+    });
     if (invoice.status === 'draft') {
       updateInvoice(invoiceId, { status: 'sent' });
     }
@@ -303,39 +328,43 @@ export default function InvoiceHistory() {
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="icon">
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleDownload(invoice.id)}>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(invoice.id); }}>
+                              <Pencil className="w-4 h-4 mr-2" />
+                              Edit Invoice
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDownload(invoice.id); }}>
                               <Download className="w-4 h-4 mr-2" />
                               Download PDF
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDuplicate(invoice.id)}>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDuplicate(invoice.id); }}>
                               <Copy className="w-4 h-4 mr-2" />
                               Duplicate
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSendEmail(invoice.id)}>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleSendEmail(invoice.id); }}>
                               <Mail className="w-4 h-4 mr-2" />
                               Send via Email
                             </DropdownMenuItem>
                             {invoice.status === 'draft' && (
-                              <DropdownMenuItem onClick={() => handleMarkSent(invoice.id)}>
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMarkSent(invoice.id); }}>
                                 <Send className="w-4 h-4 mr-2" />
                                 Mark as Sent
                               </DropdownMenuItem>
                             )}
                             {invoice.status !== 'paid' && (
-                              <DropdownMenuItem onClick={() => handleMarkPaid(invoice.id)}>
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMarkPaid(invoice.id); }}>
                                 <CheckCircle className="w-4 h-4 mr-2" />
                                 Mark as Paid
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              onClick={() => handleDelete(invoice.id)}
+                              onClick={(e) => { e.stopPropagation(); setDeleteId(invoice.id); }}
                               className="text-destructive"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
@@ -352,6 +381,24 @@ export default function InvoiceHistory() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this invoice? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Timeline Dialog */}
       <Dialog open={!!timelineInvoice} onOpenChange={() => setTimelineInvoice(null)}>
