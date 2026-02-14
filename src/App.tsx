@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
+import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
 import CreateInvoice from "@/pages/CreateInvoice";
 import InvoiceHistory from "@/pages/InvoiceHistory";
@@ -29,9 +30,10 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <Routes>
+              <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/invoices/create" element={<CreateInvoice />} />
                 <Route path="/invoices/history" element={<InvoiceHistory />} />
                 <Route path="/clients" element={<Clients />} />
