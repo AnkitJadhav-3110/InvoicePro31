@@ -94,9 +94,19 @@ function SignUpForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const validatePassword = (pw: string): string | null => {
+    if (pw.length < 8) return 'Password must be at least 8 characters';
+    if (!/[A-Z]/.test(pw)) return 'Password must contain an uppercase letter';
+    if (!/[a-z]/.test(pw)) return 'Password must contain a lowercase letter';
+    if (!/[0-9]/.test(pw)) return 'Password must contain a number';
+    if (!/[^A-Za-z0-9]/.test(pw)) return 'Password must contain a special character';
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    const pwError = validatePassword(password);
+    if (pwError) { toast.error(pwError); return; }
     setLoading(true);
     const { error } = await signUp(email, password);
     if (error) toast.error(error.message);
@@ -118,7 +128,7 @@ function SignUpForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="signup-password">Password</Label>
-            <Input id="signup-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
+            <Input id="signup-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
