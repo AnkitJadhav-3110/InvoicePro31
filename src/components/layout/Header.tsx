@@ -17,7 +17,7 @@ interface HeaderProps {
 }
 
 const pageTitles: Record<string, string> = {
-  '/': 'Dashboard',
+  '/dashboard': 'Dashboard',
   '/invoices/create': 'Create Invoice',
   '/invoices/history': 'Invoice History',
   '/clients': 'Clients',
@@ -108,7 +108,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           
           {/* InvoicePro Branding */}
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="flex items-center gap-2.5 group"
           >
             <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">

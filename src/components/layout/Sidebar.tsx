@@ -26,7 +26,7 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: FileText, label: 'Create Invoice', path: '/invoices/create' },
   { icon: FolderOpen, label: 'Invoice History', path: '/invoices/history' },
   { icon: Users, label: 'Clients', path: '/clients' },
@@ -41,7 +41,7 @@ export function Sidebar({ collapsed, onToggle, isMobileOpen, onMobileClose }: Si
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
-    navigate('/');
+    navigate('/dashboard');
     onMobileClose?.();
   };
 
