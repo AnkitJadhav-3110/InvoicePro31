@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,10 @@ import {
   Zap,
   Shield,
   Star,
+  Moon,
+  Sun,
 } from 'lucide-react';
+import { useStore } from '@/store/useStore';
 import { motion } from 'framer-motion';
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -46,6 +50,11 @@ const scaleIn = {
 
 export default function Landing() {
   const { user } = useAuth();
+  const { settings, toggleTheme } = useStore();
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', settings.theme === 'dark');
+  }, [settings.theme]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -66,6 +75,18 @@ export default function Landing() {
             <a href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="rounded-lg"
+            >
+              {settings.theme === 'dark' ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </Button>
             {user ? (
               <Button asChild>
                 <Link to="/dashboard">Go to Dashboard</Link>
