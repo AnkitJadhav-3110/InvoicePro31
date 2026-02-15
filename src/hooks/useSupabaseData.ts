@@ -16,7 +16,7 @@ export function useSupabaseSync() {
       .from('profiles')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profile) {
       const business: Business = {
@@ -126,7 +126,7 @@ export function useSupabaseSync() {
       .from('app_settings')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (settings) {
       const appSettings: AppSettings = {

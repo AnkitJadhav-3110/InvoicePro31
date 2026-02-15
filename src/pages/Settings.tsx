@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '@/store/useStore';
+import { useDataSync } from '@/hooks/useDataSync';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,7 +92,8 @@ const currencies = [
 ];
 
 export default function Settings() {
-  const { settings, updateSettings, toggleTheme } = useStore();
+  const { settings, toggleTheme } = useStore();
+  const { updateSettings } = useDataSync();
   const [formData, setFormData] = useState({
     currency: settings.currency,
     currencySymbol: settings.currencySymbol,
@@ -119,8 +121,8 @@ export default function Settings() {
     }
   };
 
-  const handleSave = () => {
-    updateSettings({ ...formData, email: emailSettings });
+  const handleSave = async () => {
+    await updateSettings({ ...formData, email: emailSettings });
     toast.success('Settings saved successfully');
   };
 

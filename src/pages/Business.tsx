@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Plus, Building2, Pencil, Trash2 } from 'lucide-react';
+import { useDataSync } from '@/hooks/useDataSync';
 import { useStore } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -32,7 +33,8 @@ import { z } from 'zod';
 type FormErrors = Partial<Record<keyof z.infer<typeof businessSchema>, string>>;
 
 export default function BusinessPage() {
-  const { businesses, currentBusinessId, addBusiness, updateBusiness, deleteBusiness, setCurrentBusiness } = useStore();
+  const { businesses, currentBusinessId, setCurrentBusiness } = useStore();
+  const { addBusiness, updateBusiness, deleteBusiness } = useDataSync();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
   const [formData, setFormData] = useState({
@@ -115,7 +117,7 @@ export default function BusinessPage() {
     setIsDialogOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const result = businessSchema.safeParse(formData);
     
     if (!result.success) {
@@ -125,21 +127,21 @@ export default function BusinessPage() {
     }
 
     if (editingBusiness) {
-      updateBusiness(editingBusiness.id, formData);
+      await updateBusiness(editingBusiness.id, formData);
       toast.success('Business updated successfully');
     } else {
-      addBusiness(formData);
+      await addBusiness(formData);
       toast.success('Business added successfully');
     }
     setIsDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (businesses.length === 1) {
       toast.error('You must have at least one business profile');
       return;
     }
-    deleteBusiness(id);
+    await deleteBusiness(id);
     toast.success('Business deleted');
   };
 
