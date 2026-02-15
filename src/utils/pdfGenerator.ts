@@ -23,6 +23,8 @@ function getColors(template: string): PDFColors {
       return { primary: [16, 185, 129], accent: [52, 211, 153] };
     case 'clean':
       return { primary: [20, 184, 166], accent: [45, 212, 191] };
+    case 'teal':
+      return { primary: [91, 164, 164], accent: [91, 164, 164] };
     default:
       return { primary: [17, 24, 39], accent: [75, 85, 99] };
   }
@@ -138,12 +140,255 @@ function checkPageBreak(pdf: jsPDF, y: number, needed: number, colors: PDFColors
   return y;
 }
 
+async function generateTealPDF(
+  invoice: Invoice | Omit<Invoice, 'id'>,
+  client: Client,
+  business: Business,
+  settings: AppSettings
+): Promise<Blob> {
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const cs = settings.currencySymbol;
+  const teal: [number, number, number] = [91, 164, 164];
+  let y = 0;
+
+  // Load images
+  const [logoData, signatureData] = await Promise.all([
+    business.logo ? loadImageAsBase64(business.logo) : null,
+    business.signature ? loadImageAsBase64(business.signature) : null,
+  ]);
+
+  // Left accent bar
+  pdf.setFillColor(teal[0], teal[1], teal[2]);
+  pdf.rect(0, 0, 6, PAGE_HEIGHT, 'F');
+
+  // PAID stamp
+  if (invoice.isPaid) {
+    pdf.setTextColor(34, 197, 94);
+    pdf.setFontSize(22);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('PAID', PAGE_WIDTH - MARGIN - 15, 30, { align: 'center' });
+    pdf.setDrawColor(34, 197, 94);
+    pdf.setLineWidth(2);
+    pdf.rect(PAGE_WIDTH - MARGIN - 33, 20, 36, 16);
+  }
+
+  y = 20;
+
+  // INVOICE title
+  pdf.setTextColor(teal[0], teal[1], teal[2]);
+  pdf.setFontSize(28);
+  pdf.setFont('helvetica', 'bolditalic');
+  pdf.text('INVOICE', MARGIN + 4, y);
+  y += 8;
+  pdf.setTextColor(17, 24, 39);
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(invoice.invoiceNumber, MARGIN + 4, y);
+
+  // Logo top right
+  if (logoData) {
+    addImageSafe(pdf, logoData, PAGE_WIDTH - MARGIN - 30, 12, 30, 20);
+  }
+
+  // DATE / DUE DATE right side
+  const dateX = PAGE_WIDTH - MARGIN;
+  y = 40;
+  pdf.setTextColor(17, 24, 39);
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('DATE', dateX, y, { align: 'right' });
+  y += 4;
+  pdf.setFont('helvetica', 'italic');
+  pdf.setTextColor(107, 114, 128);
+  pdf.text(formatDate(invoice.createdAt), dateX, y, { align: 'right' });
+  y += 6;
+  pdf.setTextColor(17, 24, 39);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('DUE DATE', dateX, y, { align: 'right' });
+  y += 4;
+  pdf.setFont('helvetica', 'italic');
+  pdf.setTextColor(107, 114, 128);
+  pdf.text(formatDate(invoice.dueDate), dateX, y, { align: 'right' });
+
+  // To / From section
+  y = 68;
+  const midX = PAGE_WIDTH / 2 + 5;
+
+  pdf.setTextColor(17, 24, 39);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('To', MARGIN + 4, y);
+  pdf.text('From', midX, y);
+  y += 5;
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9);
+  pdf.setTextColor(55, 65, 81);
+
+  const toLines = [
+    client.name,
+    client.address,
+    client.city,
+    client.country,
+  ].filter(Boolean);
+
+  const fromLines = [
+    business.name,
+    business.address,
+    business.city,
+    business.country,
+  ].filter(Boolean);
+
+  toLines.forEach((line, i) => {
+    if (i === 0) pdf.setFont('helvetica', 'bold');
+    else pdf.setFont('helvetica', 'normal');
+    pdf.text(line, MARGIN + 4, y + i * 5);
+  });
+
+  fromLines.forEach((line, i) => {
+    if (i === 0) pdf.setFont('helvetica', 'bold');
+    else pdf.setFont('helvetica', 'normal');
+    pdf.text(line, midX, y + i * 5);
+  });
+
+  y += Math.max(toLines.length, fromLines.length) * 5 + 6;
+
+  // Divider
+  pdf.setDrawColor(200, 200, 200);
+  pdf.setLineWidth(0.5);
+  pdf.line(MARGIN + 4, y, PAGE_WIDTH - MARGIN, y);
+  y += 8;
+
+  // Table header
+  const colDesc = MARGIN + 12;
+  const colQty = MARGIN + 85;
+  const colRate = MARGIN + 120;
+  const colAmount = PAGE_WIDTH - MARGIN - 5;
+
+  pdf.setTextColor(55, 65, 81);
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('DESCRIPTION', colDesc, y);
+  pdf.text('QUANTITY', colQty, y, { align: 'center' });
+  pdf.text('RATE', colRate, y, { align: 'right' });
+  pdf.text('AMOUNT', colAmount, y, { align: 'right' });
+  y += 3;
+  pdf.setDrawColor(55, 65, 81);
+  pdf.setLineWidth(0.7);
+  pdf.line(MARGIN + 4, y, PAGE_WIDTH - MARGIN, y);
+  y += 6;
+
+  // Table rows
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9);
+  invoice.items.forEach((item) => {
+    if (y > PAGE_HEIGHT - 60) {
+      pdf.addPage();
+      // Redraw accent bar
+      pdf.setFillColor(teal[0], teal[1], teal[2]);
+      pdf.rect(0, 0, 6, PAGE_HEIGHT, 'F');
+      y = MARGIN;
+    }
+
+    const lineTotal = item.quantity * item.price;
+    const lineDiscount = lineTotal * (item.discount / 100);
+    const amount = lineTotal - lineDiscount;
+
+    pdf.setTextColor(55, 65, 81);
+    pdf.text(item.description || 'Item', colDesc, y);
+    pdf.text(item.quantity.toString(), colQty, y, { align: 'center' });
+    pdf.text(formatCurrency(item.price, cs), colRate, y, { align: 'right' });
+    pdf.setTextColor(17, 24, 39);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(formatCurrency(amount, cs), colAmount, y, { align: 'right' });
+    pdf.setFont('helvetica', 'normal');
+
+    y += 3;
+    pdf.setDrawColor(220, 220, 220);
+    pdf.setLineWidth(0.3);
+    pdf.line(MARGIN + 4, y, PAGE_WIDTH - MARGIN, y);
+    y += 7;
+  });
+
+  // Totals (right-aligned)
+  y += 2;
+  const totalsLabelX = colRate;
+  const totalsValueX = colAmount;
+
+  pdf.setTextColor(107, 114, 128);
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('Subtotal', totalsLabelX, y, { align: 'right' });
+  pdf.setTextColor(17, 24, 39);
+  pdf.text(formatCurrency(invoice.subtotal, cs), totalsValueX, y, { align: 'right' });
+
+  y += 3;
+  pdf.setDrawColor(200, 200, 200);
+  pdf.line(totalsLabelX - 20, y, totalsValueX, y);
+  y += 5;
+
+  pdf.setTextColor(107, 114, 128);
+  pdf.text('Balance', totalsLabelX, y, { align: 'right' });
+  pdf.setTextColor(17, 24, 39);
+  pdf.text(formatCurrency(invoice.total, cs), totalsValueX, y, { align: 'right' });
+
+  y += 3;
+  pdf.line(totalsLabelX - 20, y, totalsValueX, y);
+  y += 5;
+
+  pdf.setTextColor(107, 114, 128);
+  pdf.text('Paid to date', totalsLabelX, y, { align: 'right' });
+  pdf.setTextColor(17, 24, 39);
+  pdf.text(formatCurrency(invoice.isPaid ? invoice.total : 0, cs), totalsValueX, y, { align: 'right' });
+
+  y += 3;
+  pdf.line(totalsLabelX - 20, y, totalsValueX, y);
+  y += 6;
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(10);
+  pdf.setTextColor(17, 24, 39);
+  pdf.text('TOTAL', totalsLabelX, y, { align: 'right' });
+  pdf.text(formatCurrency(invoice.isPaid ? 0 : invoice.total, cs), totalsValueX, y, { align: 'right' });
+
+  // Thank you message (bottom left)
+  const thankY = y - 20;
+  pdf.setTextColor(teal[0], teal[1], teal[2]);
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'bolditalic');
+  pdf.text('Thanks for', MARGIN + 8, thankY);
+  pdf.text('your business!', MARGIN + 8, thankY + 6);
+
+  // Signature
+  if (signatureData) {
+    const sigY = PAGE_HEIGHT - 45;
+    addImageSafe(pdf, signatureData, PAGE_WIDTH - MARGIN - 40, sigY, 35, 15);
+    pdf.setFontSize(7);
+    pdf.setTextColor(107, 114, 128);
+    pdf.text('Authorized Signature', PAGE_WIDTH - MARGIN - 22.5, sigY + 18, { align: 'center' });
+  }
+
+  // Footer - website
+  const emailDomain = business.email.split('@')[1] || 'yourcompany.com';
+  pdf.setTextColor(17, 24, 39);
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`www.${emailDomain}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 12, { align: 'center' });
+
+  return pdf.output('blob');
+}
+
 export async function generateInvoicePDF(
   invoice: Invoice | Omit<Invoice, 'id'>,
   client: Client,
   business: Business,
   settings: AppSettings
 ): Promise<Blob> {
+  // Use teal-specific layout if teal template
+  if (invoice.template === 'teal') {
+    return generateTealPDF(invoice, client, business, settings);
+  }
+
   const pdf = new jsPDF('p', 'mm', 'a4');
   const colors = getColors(invoice.template);
   const cs = settings.currencySymbol;

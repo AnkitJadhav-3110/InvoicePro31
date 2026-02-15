@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useDataSync } from '@/hooks/useDataSync';
 import {
   Search,
   Filter,
@@ -70,7 +71,8 @@ import {
 
 export default function InvoiceHistory() {
   const navigate = useNavigate();
-  const { invoices, clients, businesses, settings, duplicateInvoice, deleteInvoice, updateInvoice } = useStore();
+  const { invoices, clients, businesses, settings } = useStore();
+  const { duplicateInvoice, deleteInvoice, updateInvoice } = useDataSync();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
@@ -117,16 +119,16 @@ export default function InvoiceHistory() {
     navigate(`/invoices/create?edit=${id}`);
   };
 
-  const handleDuplicate = (id: string) => {
-    const newId = duplicateInvoice(id);
+  const handleDuplicate = async (id: string) => {
+    const newId = await duplicateInvoice(id);
     if (newId) {
       toast.success('Invoice duplicated');
     }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deleteId) {
-      deleteInvoice(deleteId);
+      await deleteInvoice(deleteId);
       toast.success('Invoice deleted');
       setDeleteId(null);
     }
@@ -152,13 +154,13 @@ export default function InvoiceHistory() {
     }
   };
 
-  const handleMarkPaid = (id: string) => {
-    updateInvoice(id, { status: 'paid', isPaid: true });
+  const handleMarkPaid = async (id: string) => {
+    await updateInvoice(id, { status: 'paid', isPaid: true });
     toast.success('Invoice marked as paid');
   };
 
-  const handleMarkSent = (id: string) => {
-    updateInvoice(id, { status: 'sent' });
+  const handleMarkSent = async (id: string) => {
+    await updateInvoice(id, { status: 'sent' });
     toast.success('Invoice marked as sent');
   };
 

@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useStore, RecurringSchedule } from '@/store/useStore';
+import { useDataSync } from '@/hooks/useDataSync';
 import { toast } from 'sonner';
 
 interface RecurringInvoiceDialogProps {
@@ -41,13 +42,14 @@ export function RecurringInvoiceDialog({
   clientId,
   invoiceData,
 }: RecurringInvoiceDialogProps) {
-  const { addRecurringSchedule, currentBusinessId } = useStore();
+  const { currentBusinessId } = useStore();
+  const { addRecurringSchedule } = useDataSync();
   const [frequency, setFrequency] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState('');
   const [autoSend, setAutoSend] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!clientId) {
       toast.error('Please select a client first');
       return;
@@ -74,7 +76,7 @@ export function RecurringInvoiceDialog({
       },
     };
 
-    addRecurringSchedule(schedule);
+    await addRecurringSchedule(schedule);
     toast.success(`Recurring invoice scheduled (${frequency})`);
     onOpenChange(false);
   };

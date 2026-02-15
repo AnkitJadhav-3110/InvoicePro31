@@ -10,6 +10,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { useDataSync } from '@/hooks/useDataSync';
 import type { InvoiceItem, InvoiceTemplate } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ const templates: { id: InvoiceTemplate; name: string; description: string }[] = 
   { id: 'corporate', name: 'Corporate Blue', description: 'Professional and trustworthy' },
   { id: 'dark', name: 'Bold Dark', description: 'Striking dark theme' },
   { id: 'clean', name: 'Clean Business', description: 'Elegant and refined' },
+  { id: 'teal', name: 'Corporate Teal', description: 'Modern with accent bar' },
 ];
 
 const paymentTerms = [
@@ -57,9 +59,8 @@ export default function CreateInvoice() {
     settings,
     currentBusinessId,
     getNextInvoiceNumber,
-    addInvoice,
-    updateInvoice,
   } = useStore();
+  const { addInvoice, updateInvoice } = useDataSync();
 
   const editingInvoice = editId ? invoices.find(i => i.id === editId) : null;
 
@@ -155,7 +156,7 @@ export default function CreateInvoice() {
     ));
   };
 
-  const handleSave = (status: 'draft' | 'sent' = 'draft') => {
+  const handleSave = async (status: 'draft' | 'sent' = 'draft') => {
     if (!currentBusinessId) {
       toast.error('Please select a business profile');
       return;
@@ -195,10 +196,10 @@ export default function CreateInvoice() {
     };
 
     if (editId && editingInvoice) {
-      updateInvoice(editId, invoiceData);
+      await updateInvoice(editId, invoiceData);
       toast.success('Invoice updated successfully');
     } else {
-      addInvoice(invoiceData);
+      await addInvoice(invoiceData);
       toast.success(`Invoice ${status === 'draft' ? 'saved as draft' : 'created'}`);
     }
     navigate('/invoices/history');

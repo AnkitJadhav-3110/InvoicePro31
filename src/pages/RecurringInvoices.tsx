@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { RefreshCw, Trash2, Pause, Play, Calendar, Edit2 } from 'lucide-react';
 import { useStore, RecurringSchedule } from '@/store/useStore';
+import { useDataSync } from '@/hooks/useDataSync';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,8 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 
 export default function RecurringInvoices() {
-  const { recurringSchedules, clients, settings, updateRecurringSchedule, deleteRecurringSchedule, processRecurringInvoices } = useStore();
+  const { recurringSchedules, clients, settings, processRecurringInvoices } = useStore();
+  const { updateRecurringSchedule, deleteRecurringSchedule } = useDataSync();
   const [editSchedule, setEditSchedule] = useState<RecurringSchedule | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -66,9 +68,9 @@ export default function RecurringInvoices() {
     setEditAutoSend(schedule.autoSend);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editSchedule) return;
-    updateRecurringSchedule(editSchedule.id, {
+    await updateRecurringSchedule(editSchedule.id, {
       frequency: editFrequency,
       endDate: editEndDate || undefined,
       autoSend: editAutoSend,
@@ -77,15 +79,15 @@ export default function RecurringInvoices() {
     setEditSchedule(null);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteId) return;
-    deleteRecurringSchedule(deleteId);
+    await deleteRecurringSchedule(deleteId);
     toast.success('Schedule deleted');
     setDeleteId(null);
   };
 
-  const handleToggleActive = (id: string, isActive: boolean) => {
-    updateRecurringSchedule(id, { isActive: !isActive });
+  const handleToggleActive = async (id: string, isActive: boolean) => {
+    await updateRecurringSchedule(id, { isActive: !isActive });
     toast.success(isActive ? 'Schedule paused' : 'Schedule resumed');
   };
 

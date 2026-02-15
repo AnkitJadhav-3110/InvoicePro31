@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, Phone, MapPin, FileText, FileDown } from 'lucide-react';
 import { useStore, Client } from '@/store/useStore';
+import { useDataSync } from '@/hooks/useDataSync';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,8 @@ import { z } from 'zod';
 type FormErrors = Partial<Record<keyof z.infer<typeof clientSchema>, string>>;
 
 export default function Clients() {
-  const { clients, invoices, addClient, updateClient, deleteClient } = useStore();
+  const { clients, invoices, settings } = useStore();
+  const { addClient, updateClient, deleteClient } = useDataSync();
   const [search, setSearch] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -114,7 +116,7 @@ export default function Clients() {
     setIsDialogOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const result = clientSchema.safeParse(formData);
     
     if (!result.success) {
@@ -124,22 +126,22 @@ export default function Clients() {
     }
 
     if (editingClient) {
-      updateClient(editingClient.id, formData);
+      await updateClient(editingClient.id, formData);
       toast.success('Client updated successfully');
     } else {
-      addClient(formData);
+      await addClient(formData);
       toast.success('Client added successfully');
     }
     setIsDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     const hasInvoices = invoices.some(i => i.clientId === id);
     if (hasInvoices) {
       toast.error('Cannot delete client with existing invoices');
       return;
     }
-    deleteClient(id);
+    await deleteClient(id);
     toast.success('Client deleted');
   };
 
@@ -254,7 +256,7 @@ export default function Clients() {
                   </div>
                   <div className="text-center">
                     <p className="text-base sm:text-lg font-semibold text-foreground">
-                      ${getClientRevenue(client.id).toLocaleString()}
+                      {settings.currencySymbol}{getClientRevenue(client.id).toLocaleString()}
                     </p>
                     <p className="text-xs text-muted-foreground">Revenue</p>
                   </div>

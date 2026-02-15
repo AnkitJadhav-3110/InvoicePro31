@@ -86,6 +86,14 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
           accent: 'text-teal-600',
           accentBg: 'bg-teal-50',
         };
+      case 'teal':
+        return {
+          container: 'bg-white shadow-xl',
+          header: 'text-gray-900',
+          body: 'bg-white',
+          accent: 'text-teal-600',
+          accentBg: 'bg-gray-50',
+        };
       default:
         return {
           container: 'bg-white border border-gray-200',
@@ -99,6 +107,160 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
 
   const styles = getTemplateStyles(invoice.template);
 
+  // Special teal corporate template
+  if (invoice.template === 'teal') {
+    return (
+      <div className="invoice-template w-full min-h-[800px] relative bg-white shadow-xl">
+        {/* Left accent bar */}
+        <div className="absolute left-0 top-0 bottom-0 w-3" style={{ backgroundColor: '#5ba4a4' }} />
+
+        {invoice.isPaid && (
+          <div className="absolute top-20 right-8 transform rotate-12 z-10">
+            <div className="border-4 border-green-500 text-green-500 px-6 py-2 rounded-lg text-2xl font-bold opacity-80">
+              PAID
+            </div>
+          </div>
+        )}
+
+        <div className="pl-8 pr-8 pt-8 pb-4">
+          {/* Header: INVOICE title left, Logo + dates right */}
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h1 className="text-4xl font-bold italic" style={{ color: '#5ba4a4' }}>INVOICE</h1>
+              <p className="text-lg font-bold text-gray-800 mt-1">{invoice.invoiceNumber}</p>
+            </div>
+            <div className="text-right">
+              {business?.logo ? (
+                <img src={business.logo} alt="Logo" className="h-14 ml-auto mb-3 object-contain" />
+              ) : (
+                <div className="text-right mb-3">
+                  <p className="text-lg font-bold text-gray-800">{business?.name || 'Your Company'}</p>
+                </div>
+              )}
+              <div className="space-y-1">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-700">DATE</p>
+                  <p className="text-sm text-gray-600 italic">{formatDate(invoice.createdAt)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-700">DUE DATE</p>
+                  <p className="text-sm text-gray-600 italic">{formatDate(invoice.dueDate)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* To / From */}
+          <div className="grid grid-cols-2 gap-8 mt-6 mb-6">
+            <div>
+              <h3 className="text-base font-bold text-gray-800 mb-2">To</h3>
+              <div className="text-sm space-y-0.5 text-gray-700">
+                <p className="font-semibold">{client?.name || 'Client Name'}</p>
+                {client?.address && <p>{client.address}</p>}
+                {client?.city && <p>{client.city}</p>}
+                {client?.country && <p>{client.country}</p>}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-gray-800 mb-2">From</h3>
+              <div className="text-sm space-y-0.5 text-gray-700">
+                <p className="font-semibold">{business?.name || 'Your Company'}</p>
+                {business?.address && <p>{business.address}</p>}
+                {business?.city && <p>{business.city}</p>}
+                {business?.country && <p>{business.country}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <hr className="border-gray-300 mb-4" />
+
+          {/* Items table */}
+          <div className="mb-6">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b-2 border-gray-300">
+                  <th className="text-left py-3 text-xs font-bold uppercase tracking-widest text-gray-700 pl-4">Description</th>
+                  <th className="text-center py-3 text-xs font-bold uppercase tracking-widest text-gray-700">Quantity</th>
+                  <th className="text-right py-3 text-xs font-bold uppercase tracking-widest text-gray-700">Rate</th>
+                  <th className="text-right py-3 text-xs font-bold uppercase tracking-widest text-gray-700 pr-4">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoice.items.map((item, index) => {
+                  const lineTotal = item.quantity * item.price;
+                  const lineDiscount = lineTotal * (item.discount / 100);
+                  const amount = lineTotal - lineDiscount;
+                  return (
+                    <tr key={item.id || index} className="border-b border-gray-200">
+                      <td className="py-4 pl-4 text-sm text-gray-800">{item.description || 'Item description'}</td>
+                      <td className="py-4 text-sm text-center text-gray-700">{item.quantity}</td>
+                      <td className="py-4 text-sm text-right text-gray-700">{formatCurrency(item.price)}</td>
+                      <td className="py-4 text-sm text-right font-medium text-gray-900 pr-4">{formatCurrency(amount)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Totals + Thank you */}
+          <div className="flex justify-between items-end mb-6">
+            <div className="flex-1">
+              <p className="text-xl italic font-semibold" style={{ color: '#5ba4a4' }}>
+                Thanks for<br />your business!
+              </p>
+            </div>
+            <div className="w-64 space-y-1">
+              <div className="flex justify-between text-sm border-b border-gray-200 py-2">
+                <span className="text-gray-600">Subtotal</span>
+                <span className="font-medium">{formatCurrency(invoice.subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm border-b border-gray-200 py-2">
+                <span className="text-gray-600">Balance</span>
+                <span className="font-medium">{formatCurrency(invoice.total)}</span>
+              </div>
+              <div className="flex justify-between text-sm border-b border-gray-200 py-2">
+                <span className="text-gray-600">Paid to date</span>
+                <span className="font-medium">{formatCurrency(invoice.isPaid ? invoice.total : 0)}</span>
+              </div>
+              <div className="flex justify-between text-sm border-b-2 border-gray-400 py-2">
+                <span className="font-bold text-gray-900">TOTAL</span>
+                <span className="font-bold text-gray-900">{formatCurrency(invoice.isPaid ? 0 : invoice.total)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* QR Code */}
+          {qrCode && (
+            <div className="flex justify-end mb-4">
+              <div className="text-center">
+                <img src={qrCode} alt="Payment QR" className="w-24 h-24" />
+                <p className="text-xs text-gray-500 mt-1">Scan to Pay</p>
+              </div>
+            </div>
+          )}
+
+          {/* Signature */}
+          {business?.signature && (
+            <div className="mt-4 text-right">
+              <img src={business.signature} alt="Signature" className="h-12 ml-auto" />
+              <p className="text-sm text-gray-500">Authorized Signature</p>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="mt-8 pt-4 border-t border-gray-200 text-center">
+            <p className="text-sm font-bold text-gray-800">
+              {business?.email ? `www.${business.email.split('@')[1] || 'yourcompany.com'}` : 'www.yourcompany.com'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default templates (minimal, modern, corporate, dark, clean)
   return (
     <div className={cn("invoice-template w-full min-h-[800px] relative", styles.container)}>
       {invoice.isPaid && (
