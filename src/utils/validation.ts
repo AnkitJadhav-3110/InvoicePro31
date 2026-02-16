@@ -138,6 +138,10 @@ export const invoiceSchema = z.object({
   paymentQR: z.string()
     .trim()
     .max(500, 'Payment URL must be less than 500 characters')
+    .refine(
+      (val) => !val || /^https?:\/\/.+/.test(val),
+      'Must be a valid HTTP or HTTPS URL'
+    )
     .optional()
     .or(z.literal('')),
   items: z.array(invoiceItemSchema).min(1, 'Invoice must have at least one item'),
