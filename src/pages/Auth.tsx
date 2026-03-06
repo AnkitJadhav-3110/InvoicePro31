@@ -104,6 +104,47 @@ export default function Auth() {
   );
 }
 
+function ForgotPasswordLink() {
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [email, setEmail] = useState('');
+  const [showForm, setShowForm] = useState(false);
+
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) { toast.error('Please enter your email'); return; }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) toast.error(error.message);
+    else setSent(true);
+    setLoading(false);
+  };
+
+  if (sent) {
+    return <p className="text-sm text-center text-green-600 mt-3">Check your email for a reset link.</p>;
+  }
+
+  if (showForm) {
+    return (
+      <form onSubmit={handleReset} className="mt-3 space-y-2">
+        <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
+        <Button type="submit" variant="outline" className="w-full" disabled={loading}>
+          {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+          Send Reset Link
+        </Button>
+      </form>
+    );
+  }
+
+  return (
+    <button type="button" onClick={() => setShowForm(true)} className="text-sm text-primary hover:underline w-full text-center mt-3">
+      Forgot your password?
+    </button>
+  );
+}
+
 function SignInForm() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
