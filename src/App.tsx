@@ -17,6 +17,7 @@ import BusinessTools from "@/pages/BusinessTools";
 import RecurringInvoices from "@/pages/RecurringInvoices";
 import Settings from "@/pages/Settings";
 import Auth from "@/pages/Auth";
+import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
