@@ -141,6 +141,7 @@ function SignInForm() {
             Sign In
           </Button>
         </form>
+        <ForgotPasswordLink />
       </CardContent>
     </Card>
   );
