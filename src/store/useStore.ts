@@ -514,6 +514,8 @@ export const initializeDemoData = () => {
       city: 'Chicago, IL 60601',
       country: 'United States',
       taxId: 'GI-789012',
+      currency: 'USD',
+      currencySymbol: '$',
     });
 
     const items1: InvoiceItem[] = [
