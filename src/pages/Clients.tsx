@@ -44,6 +44,8 @@ export default function Clients() {
     country: '',
     taxId: '',
     notes: '',
+    currency: settings.currency,
+    currencySymbol: settings.currencySymbol,
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
