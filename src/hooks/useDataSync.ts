@@ -30,7 +30,9 @@ export function useDataSync() {
         country: clientData.country,
         tax_id: clientData.taxId || null,
         notes: clientData.notes || null,
-      })
+        currency: clientData.currency || 'USD',
+        currency_symbol: clientData.currencySymbol || '$',
+      } as any)
       .select()
       .single();
 
