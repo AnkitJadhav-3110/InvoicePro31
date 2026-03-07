@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -8,10 +8,16 @@ import {
   Eye,
   Save,
   RefreshCw,
+  Paperclip,
+  X,
+  FileIcon,
+  Upload,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useDataSync } from '@/hooks/useDataSync';
-import type { InvoiceItem, InvoiceTemplate } from '@/store/useStore';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import type { InvoiceItem, InvoiceTemplate, InvoiceAttachment } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
