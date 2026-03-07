@@ -83,6 +83,10 @@ export default function CreateInvoice() {
     { id: uuidv4(), description: '', quantity: 1, price: 0, taxRate: settings.defaultTaxRate, discount: 0 },
   ]);
   const [showRecurringDialog, setShowRecurringDialog] = useState(false);
+  const [invoiceCurrency, setInvoiceCurrency] = useState(settings.currencySymbol);
+  const [attachments, setAttachments] = useState<InvoiceAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const { user } = useAuth();
 
   // Load editing invoice data
   useEffect(() => {
