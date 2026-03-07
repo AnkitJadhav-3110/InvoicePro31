@@ -307,13 +307,32 @@ export default function CreateInvoice() {
       isPaid: showPaidStamp,
     };
 
+    let invoiceId = editId;
     if (editId && editingInvoice) {
       await updateInvoice(editId, invoiceData);
       toast.success('Invoice updated successfully');
     } else {
-      await addInvoice(invoiceData);
+      const newId = await addInvoice(invoiceData);
+      invoiceId = typeof newId === 'string' ? newId : null;
       toast.success(`Invoice ${status === 'draft' ? 'saved as draft' : 'created'}`);
     }
+
+    // Save attachments to DB
+    if (invoiceId && user && attachments.length > 0) {
+      for (const att of attachments) {
+        if (!att.invoiceId || att.invoiceId === '') {
+          await supabase.from('invoice_attachments').insert({
+            invoice_id: invoiceId,
+            user_id: user.id,
+            file_name: att.fileName,
+            file_url: att.fileUrl,
+            file_size: att.fileSize,
+            file_type: att.fileType,
+          } as any);
+        }
+      }
+    }
+
     navigate('/invoices/history');
   };
 
