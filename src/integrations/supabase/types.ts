@@ -65,6 +65,8 @@ export type Database = {
           city: string
           country: string
           created_at: string
+          currency: string
+          currency_symbol: string
           email: string
           id: string
           name: string
@@ -78,6 +80,8 @@ export type Database = {
           city?: string
           country?: string
           created_at?: string
+          currency?: string
+          currency_symbol?: string
           email?: string
           id?: string
           name: string
@@ -91,12 +95,47 @@ export type Database = {
           city?: string
           country?: string
           created_at?: string
+          currency?: string
+          currency_symbol?: string
           email?: string
           id?: string
           name?: string
           notes?: string | null
           phone?: string
           tax_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      invoice_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id: string
+          invoice_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number
+          file_type?: string
+          file_url: string
+          id?: string
+          invoice_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          invoice_id?: string
           user_id?: string
         }
         Relationships: []
