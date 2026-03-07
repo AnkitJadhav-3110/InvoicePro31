@@ -63,6 +63,8 @@ export function useSupabaseSync() {
         country: c.country,
         taxId: c.tax_id || undefined,
         notes: c.notes || undefined,
+        currency: (c as any).currency || 'USD',
+        currencySymbol: (c as any).currency_symbol || '$',
         createdAt: c.created_at,
       }));
       useStore.setState({ clients: mappedClients });
@@ -188,7 +190,9 @@ export async function saveClientToSupabase(userId: string, client: Omit<Client, 
       country: client.country,
       tax_id: client.taxId || null,
       notes: client.notes || null,
-    })
+      currency: client.currency || 'USD',
+      currency_symbol: client.currencySymbol || '$',
+    } as any)
     .select()
     .single();
 
@@ -205,6 +209,8 @@ export async function updateClientInSupabase(clientId: string, client: Partial<C
   if (client.country !== undefined) updateData.country = client.country;
   if (client.taxId !== undefined) updateData.tax_id = client.taxId;
   if (client.notes !== undefined) updateData.notes = client.notes;
+  if (client.currency !== undefined) updateData.currency = client.currency;
+  if (client.currencySymbol !== undefined) updateData.currency_symbol = client.currencySymbol;
 
   const { error } = await supabase.from('clients').update(updateData).eq('id', clientId);
   return { error };

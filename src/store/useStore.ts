@@ -29,6 +29,18 @@ export interface Client {
   country: string;
   taxId?: string;
   notes?: string;
+  currency: string;
+  currencySymbol: string;
+  createdAt: string;
+}
+
+export interface InvoiceAttachment {
+  id: string;
+  invoiceId: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  fileType: string;
   createdAt: string;
 }
 
@@ -478,6 +490,8 @@ export const initializeDemoData = () => {
       country: 'United States',
       taxId: 'AC-123456',
       notes: 'Premium client - 30 day payment terms',
+      currency: 'USD',
+      currencySymbol: '$',
     });
 
     const client2Id = state.addClient({
@@ -488,6 +502,8 @@ export const initializeDemoData = () => {
       city: 'San Francisco, CA 94102',
       country: 'United States',
       notes: 'New client - requires detailed invoices',
+      currency: 'USD',
+      currencySymbol: '$',
     });
 
     const client3Id = state.addClient({
@@ -498,6 +514,8 @@ export const initializeDemoData = () => {
       city: 'Chicago, IL 60601',
       country: 'United States',
       taxId: 'GI-789012',
+      currency: 'USD',
+      currencySymbol: '$',
     });
 
     const items1: InvoiceItem[] = [

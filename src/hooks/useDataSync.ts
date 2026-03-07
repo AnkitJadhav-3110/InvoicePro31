@@ -30,7 +30,9 @@ export function useDataSync() {
         country: clientData.country,
         tax_id: clientData.taxId || null,
         notes: clientData.notes || null,
-      })
+        currency: clientData.currency || 'USD',
+        currency_symbol: clientData.currencySymbol || '$',
+      } as any)
       .select()
       .single();
 
@@ -48,6 +50,8 @@ export function useDataSync() {
       country: data.country,
       taxId: data.tax_id || undefined,
       notes: data.notes || undefined,
+      currency: (data as any).currency || 'USD',
+      currencySymbol: (data as any).currency_symbol || '$',
       createdAt: data.created_at,
     };
     useStore.setState(state => ({ clients: [client, ...state.clients] }));
@@ -67,6 +71,8 @@ export function useDataSync() {
     if (clientData.country !== undefined) updateData.country = clientData.country;
     if (clientData.taxId !== undefined) updateData.tax_id = clientData.taxId;
     if (clientData.notes !== undefined) updateData.notes = clientData.notes;
+    if (clientData.currency !== undefined) updateData.currency = clientData.currency;
+    if (clientData.currencySymbol !== undefined) updateData.currency_symbol = clientData.currencySymbol;
 
     await supabase.from('clients').update(updateData).eq('id', id);
   }, [user]);

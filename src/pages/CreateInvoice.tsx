@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -8,10 +8,16 @@ import {
   Eye,
   Save,
   RefreshCw,
+  Paperclip,
+  X,
+  FileIcon,
+  Upload,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useDataSync } from '@/hooks/useDataSync';
-import type { InvoiceItem, InvoiceTemplate } from '@/store/useStore';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import type { InvoiceItem, InvoiceTemplate, InvoiceAttachment } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,6 +83,10 @@ export default function CreateInvoice() {
     { id: uuidv4(), description: '', quantity: 1, price: 0, taxRate: settings.defaultTaxRate, discount: 0 },
   ]);
   const [showRecurringDialog, setShowRecurringDialog] = useState(false);
+  const [invoiceCurrency, setInvoiceCurrency] = useState(settings.currencySymbol);
+  const [attachments, setAttachments] = useState<InvoiceAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const { user } = useAuth();
 
   // Load editing invoice data
   useEffect(() => {
@@ -95,6 +105,36 @@ export default function CreateInvoice() {
 
   const currentBusiness = businesses.find(b => b.id === currentBusinessId);
   const selectedClient = clients.find(c => c.id === selectedClientId);
+
+  // Auto-set currency when client changes
+  useEffect(() => {
+    if (selectedClient) {
+      setInvoiceCurrency(selectedClient.currencySymbol || settings.currencySymbol);
+    }
+  }, [selectedClient, settings.currencySymbol]);
+
+  // Load attachments when editing
+  useEffect(() => {
+    if (editId && user) {
+      supabase
+        .from('invoice_attachments')
+        .select('*')
+        .eq('invoice_id', editId)
+        .then(({ data }) => {
+          if (data) {
+            setAttachments(data.map(a => ({
+              id: a.id,
+              invoiceId: a.invoice_id,
+              fileName: a.file_name,
+              fileUrl: a.file_url,
+              fileSize: Number(a.file_size),
+              fileType: a.file_type,
+              createdAt: a.created_at,
+            })));
+          }
+        });
+    }
+  }, [editId, user]);
 
   useEffect(() => {
     if (!editId) {
@@ -132,7 +172,79 @@ export default function CreateInvoice() {
   }, [items]);
 
   const formatCurrency = (amount: number) => {
-    return `${settings.currencySymbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    return `${invoiceCurrency}${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  };
+
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !user) return;
+    const files = Array.from(e.target.files);
+    
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const invalidFiles = files.filter(f => f.size > maxSize);
+    if (invalidFiles.length > 0) {
+      toast.error('Files must be under 10MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${user.id}/${uuidv4()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('invoice-attachments')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          toast.error(`Failed to upload ${file.name}`);
+          continue;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('invoice-attachments')
+          .getPublicUrl(filePath);
+
+        const attachment: InvoiceAttachment = {
+          id: uuidv4(),
+          invoiceId: editId || '',
+          fileName: file.name,
+          fileUrl: filePath,
+          fileSize: file.size,
+          fileType: file.type,
+          createdAt: new Date().toISOString(),
+        };
+
+        setAttachments(prev => [...prev, attachment]);
+      }
+      toast.success('Files uploaded');
+    } catch {
+      toast.error('Upload failed');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  }, [user, editId]);
+
+  const handleRemoveAttachment = useCallback(async (attachment: InvoiceAttachment) => {
+    // Remove from storage
+    await supabase.storage
+      .from('invoice-attachments')
+      .remove([attachment.fileUrl]);
+
+    // Remove from DB if exists
+    if (attachment.id) {
+      await supabase.from('invoice_attachments').delete().eq('id', attachment.id);
+    }
+
+    setAttachments(prev => prev.filter(a => a.id !== attachment.id));
+    toast.success('Attachment removed');
+  }, []);
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const addItem = () => {
@@ -195,13 +307,32 @@ export default function CreateInvoice() {
       isPaid: showPaidStamp,
     };
 
+    let invoiceId = editId;
     if (editId && editingInvoice) {
       await updateInvoice(editId, invoiceData);
       toast.success('Invoice updated successfully');
     } else {
-      await addInvoice(invoiceData);
+      const newId = await addInvoice(invoiceData);
+      invoiceId = typeof newId === 'string' ? newId : null;
       toast.success(`Invoice ${status === 'draft' ? 'saved as draft' : 'created'}`);
     }
+
+    // Save attachments to DB
+    if (invoiceId && user && attachments.length > 0) {
+      for (const att of attachments) {
+        if (!att.invoiceId || att.invoiceId === '') {
+          await supabase.from('invoice_attachments').insert({
+            invoice_id: invoiceId,
+            user_id: user.id,
+            file_name: att.fileName,
+            file_url: att.fileUrl,
+            file_size: att.fileSize,
+            file_type: att.fileType,
+          } as any);
+        }
+      }
+    }
+
     navigate('/invoices/history');
   };
 
@@ -471,6 +602,60 @@ export default function CreateInvoice() {
                   onCheckedChange={setShowPaidStamp}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* File Attachments */}
+          <Card className="shadow-card">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Paperclip className="w-5 h-5" />
+                Attachments
+              </CardTitle>
+              <label>
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
+                />
+                <Button variant="outline" size="sm" asChild disabled={uploading}>
+                  <span className="cursor-pointer">
+                    <Upload className="w-4 h-4 mr-2" />
+                    {uploading ? 'Uploading...' : 'Upload Files'}
+                  </span>
+                </Button>
+              </label>
+            </CardHeader>
+            <CardContent>
+              {attachments.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No attachments yet. Upload contracts, receipts, or other documents.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {attachments.map(att => (
+                    <div key={att.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <FileIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{att.fileName}</p>
+                          <p className="text-xs text-muted-foreground">{formatFileSize(att.fileSize)}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive shrink-0"
+                        onClick={() => handleRemoveAttachment(att)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
