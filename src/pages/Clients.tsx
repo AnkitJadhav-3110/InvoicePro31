@@ -288,6 +288,12 @@ export default function Clients() {
                       <span className="truncate">{client.city}</span>
                     </div>
                   )}
+                  {client.currency && client.currency !== settings.currency && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Globe className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{client.currencySymbol} {client.currency}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
