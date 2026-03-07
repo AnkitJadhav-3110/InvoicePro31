@@ -48,6 +48,8 @@ export function useDataSync() {
       country: data.country,
       taxId: data.tax_id || undefined,
       notes: data.notes || undefined,
+      currency: (data as any).currency || 'USD',
+      currencySymbol: (data as any).currency_symbol || '$',
       createdAt: data.created_at,
     };
     useStore.setState(state => ({ clients: [client, ...state.clients] }));
