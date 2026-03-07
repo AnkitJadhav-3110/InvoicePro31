@@ -63,6 +63,8 @@ export function useSupabaseSync() {
         country: c.country,
         taxId: c.tax_id || undefined,
         notes: c.notes || undefined,
+        currency: (c as any).currency || 'USD',
+        currencySymbol: (c as any).currency_symbol || '$',
         createdAt: c.created_at,
       }));
       useStore.setState({ clients: mappedClients });

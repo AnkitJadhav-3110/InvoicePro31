@@ -22,6 +22,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
 import { exportClientsToCSV } from '@/utils/csvExport';
 import { clientSchema, getErrorsObject } from '@/utils/validation';

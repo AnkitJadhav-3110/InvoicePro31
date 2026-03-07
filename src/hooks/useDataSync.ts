@@ -71,6 +71,8 @@ export function useDataSync() {
     if (clientData.country !== undefined) updateData.country = clientData.country;
     if (clientData.taxId !== undefined) updateData.tax_id = clientData.taxId;
     if (clientData.notes !== undefined) updateData.notes = clientData.notes;
+    if (clientData.currency !== undefined) updateData.currency = clientData.currency;
+    if (clientData.currencySymbol !== undefined) updateData.currency_symbol = clientData.currencySymbol;
 
     await supabase.from('clients').update(updateData).eq('id', id);
   }, [user]);

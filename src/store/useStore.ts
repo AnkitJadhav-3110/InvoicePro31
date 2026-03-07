@@ -490,6 +490,8 @@ export const initializeDemoData = () => {
       country: 'United States',
       taxId: 'AC-123456',
       notes: 'Premium client - 30 day payment terms',
+      currency: 'USD',
+      currencySymbol: '$',
     });
 
     const client2Id = state.addClient({
@@ -500,6 +502,8 @@ export const initializeDemoData = () => {
       city: 'San Francisco, CA 94102',
       country: 'United States',
       notes: 'New client - requires detailed invoices',
+      currency: 'USD',
+      currencySymbol: '$',
     });
 
     const client3Id = state.addClient({
