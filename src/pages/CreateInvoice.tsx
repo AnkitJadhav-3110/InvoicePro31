@@ -605,7 +605,60 @@ export default function CreateInvoice() {
             </CardContent>
           </Card>
 
+          {/* File Attachments */}
           <Card className="shadow-card">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Paperclip className="w-5 h-5" />
+                Attachments
+              </CardTitle>
+              <label>
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
+                />
+                <Button variant="outline" size="sm" asChild disabled={uploading}>
+                  <span className="cursor-pointer">
+                    <Upload className="w-4 h-4 mr-2" />
+                    {uploading ? 'Uploading...' : 'Upload Files'}
+                  </span>
+                </Button>
+              </label>
+            </CardHeader>
+            <CardContent>
+              {attachments.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No attachments yet. Upload contracts, receipts, or other documents.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {attachments.map(att => (
+                    <div key={att.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <FileIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{att.fileName}</p>
+                          <p className="text-xs text-muted-foreground">{formatFileSize(att.fileSize)}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive shrink-0"
+                        onClick={() => handleRemoveAttachment(att)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
             <CardHeader>
               <CardTitle className="text-lg">Template</CardTitle>
             </CardHeader>
