@@ -190,7 +190,9 @@ export async function saveClientToSupabase(userId: string, client: Omit<Client, 
       country: client.country,
       tax_id: client.taxId || null,
       notes: client.notes || null,
-    })
+      currency: client.currency || 'USD',
+      currency_symbol: client.currencySymbol || '$',
+    } as any)
     .select()
     .single();
 
