@@ -209,6 +209,8 @@ export async function updateClientInSupabase(clientId: string, client: Partial<C
   if (client.country !== undefined) updateData.country = client.country;
   if (client.taxId !== undefined) updateData.tax_id = client.taxId;
   if (client.notes !== undefined) updateData.notes = client.notes;
+  if (client.currency !== undefined) updateData.currency = client.currency;
+  if (client.currencySymbol !== undefined) updateData.currency_symbol = client.currencySymbol;
 
   const { error } = await supabase.from('clients').update(updateData).eq('id', clientId);
   return { error };
