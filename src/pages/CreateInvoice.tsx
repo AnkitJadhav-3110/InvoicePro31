@@ -103,6 +103,9 @@ export default function CreateInvoice() {
     }
   }, [editingInvoice]);
 
+  const currentBusiness = businesses.find(b => b.id === currentBusinessId);
+  const selectedClient = clients.find(c => c.id === selectedClientId);
+
   // Auto-set currency when client changes
   useEffect(() => {
     if (selectedClient) {
@@ -132,9 +135,6 @@ export default function CreateInvoice() {
         });
     }
   }, [editId, user]);
-
-  const currentBusiness = businesses.find(b => b.id === currentBusinessId);
-  const selectedClient = clients.find(c => c.id === selectedClientId);
 
   useEffect(() => {
     if (!editId) {
