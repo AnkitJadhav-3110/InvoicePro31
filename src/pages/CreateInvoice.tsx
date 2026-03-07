@@ -172,7 +172,79 @@ export default function CreateInvoice() {
   }, [items]);
 
   const formatCurrency = (amount: number) => {
-    return `${settings.currencySymbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    return `${invoiceCurrency}${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  };
+
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !user) return;
+    const files = Array.from(e.target.files);
+    
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const invalidFiles = files.filter(f => f.size > maxSize);
+    if (invalidFiles.length > 0) {
+      toast.error('Files must be under 10MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${user.id}/${uuidv4()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('invoice-attachments')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          toast.error(`Failed to upload ${file.name}`);
+          continue;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('invoice-attachments')
+          .getPublicUrl(filePath);
+
+        const attachment: InvoiceAttachment = {
+          id: uuidv4(),
+          invoiceId: editId || '',
+          fileName: file.name,
+          fileUrl: filePath,
+          fileSize: file.size,
+          fileType: file.type,
+          createdAt: new Date().toISOString(),
+        };
+
+        setAttachments(prev => [...prev, attachment]);
+      }
+      toast.success('Files uploaded');
+    } catch {
+      toast.error('Upload failed');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  }, [user, editId]);
+
+  const handleRemoveAttachment = useCallback(async (attachment: InvoiceAttachment) => {
+    // Remove from storage
+    await supabase.storage
+      .from('invoice-attachments')
+      .remove([attachment.fileUrl]);
+
+    // Remove from DB if exists
+    if (attachment.id) {
+      await supabase.from('invoice_attachments').delete().eq('id', attachment.id);
+    }
+
+    setAttachments(prev => prev.filter(a => a.id !== attachment.id));
+    toast.success('Attachment removed');
+  }, []);
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const addItem = () => {
