@@ -659,6 +659,7 @@ export default function CreateInvoice() {
             </CardContent>
           </Card>
 
+          <Card className="shadow-card">
             <CardHeader>
               <CardTitle className="text-lg">Template</CardTitle>
             </CardHeader>
