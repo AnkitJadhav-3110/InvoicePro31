@@ -381,6 +381,30 @@ export default function Clients() {
                 error={errors.country}
               />
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Currency</Label>
+                <Select value={formData.currency} onValueChange={handleCurrencyChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currencies.map(c => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.symbol} - {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Currency Symbol</Label>
+                <Input
+                  value={formData.currencySymbol}
+                  onChange={(e) => setFormData(prev => ({ ...prev, currencySymbol: e.target.value }))}
+                />
+              </div>
+            </div>
             <FormTextarea
               label="Notes"
               value={formData.notes}

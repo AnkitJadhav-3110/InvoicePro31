@@ -29,6 +29,18 @@ export interface Client {
   country: string;
   taxId?: string;
   notes?: string;
+  currency: string;
+  currencySymbol: string;
+  createdAt: string;
+}
+
+export interface InvoiceAttachment {
+  id: string;
+  invoiceId: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  fileType: string;
   createdAt: string;
 }
 
