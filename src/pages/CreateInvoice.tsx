@@ -103,6 +103,36 @@ export default function CreateInvoice() {
     }
   }, [editingInvoice]);
 
+  // Auto-set currency when client changes
+  useEffect(() => {
+    if (selectedClient) {
+      setInvoiceCurrency(selectedClient.currencySymbol || settings.currencySymbol);
+    }
+  }, [selectedClient, settings.currencySymbol]);
+
+  // Load attachments when editing
+  useEffect(() => {
+    if (editId && user) {
+      supabase
+        .from('invoice_attachments')
+        .select('*')
+        .eq('invoice_id', editId)
+        .then(({ data }) => {
+          if (data) {
+            setAttachments(data.map(a => ({
+              id: a.id,
+              invoiceId: a.invoice_id,
+              fileName: a.file_name,
+              fileUrl: a.file_url,
+              fileSize: Number(a.file_size),
+              fileType: a.file_type,
+              createdAt: a.created_at,
+            })));
+          }
+        });
+    }
+  }, [editId, user]);
+
   const currentBusiness = businesses.find(b => b.id === currentBusinessId);
   const selectedClient = clients.find(c => c.id === selectedClientId);
 
