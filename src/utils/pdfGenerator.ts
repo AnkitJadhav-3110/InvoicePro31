@@ -137,6 +137,11 @@ export async function generateInvoicePDF(
   business: Business,
   settings: AppSettings
 ): Promise<Blob> {
+  // Use corporate blue template when selected
+  if (invoice.template === 'corporate') {
+    return generateCorporateBluePDF(invoice, client, business, settings);
+  }
+
   const pdf = new jsPDF('p', 'mm', 'a4');
   const cs = settings.currencySymbol;
   let y = MARGIN_TOP;
