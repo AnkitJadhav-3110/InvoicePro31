@@ -76,6 +76,8 @@ export default function InvoiceHistory() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [timelineInvoice, setTimelineInvoice] = useState<Invoice | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
