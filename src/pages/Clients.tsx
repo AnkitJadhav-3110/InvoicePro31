@@ -306,17 +306,22 @@ export default function Clients() {
                   )}
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+                <div
+                  className="mt-4 pt-4 border-t border-border flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-b-lg -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 px-4 sm:px-6 pb-4 sm:pb-6 transition-colors"
+                  onClick={() => setHistoryClient(client)}
+                  title="View invoice history"
+                >
                   <div className="text-center">
                     <p className="text-base sm:text-lg font-semibold text-foreground">{getClientInvoiceCount(client.id)}</p>
                     <p className="text-xs text-muted-foreground">Invoices</p>
                   </div>
                   <div className="text-center">
                     <p className="text-base sm:text-lg font-semibold text-foreground">
-                      {settings.currencySymbol}{getClientRevenue(client.id).toLocaleString()}
+                      {(client.currencySymbol || settings.currencySymbol)}{getClientRevenue(client.id).toLocaleString()}
                     </p>
                     <p className="text-xs text-muted-foreground">Revenue</p>
                   </div>
+                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>
