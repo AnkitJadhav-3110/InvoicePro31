@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import { Invoice, Client, Business, AppSettings } from '@/store/useStore';
+import { generateCorporateBluePDF } from './pdfCorporateBlue';
 
 const PAGE_WIDTH = 210;
 const PAGE_HEIGHT = 297;
