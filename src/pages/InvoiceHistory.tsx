@@ -96,7 +96,7 @@ export default function InvoiceHistory() {
         return matchesSearch && matchesStatus && matchesClient && matchesDateFrom && matchesDateTo;
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [invoices, clients, search, statusFilter, clientFilter]);
+  }, [invoices, clients, search, statusFilter, clientFilter, dateFrom, dateTo]);
 
   const formatCurrency = (amount: number) => {
     return `${settings.currencySymbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
