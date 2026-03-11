@@ -56,6 +56,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { downloadInvoicePDF } from '@/utils/pdfGenerator';
 import { exportInvoicesToCSV } from '@/utils/csvExport';
@@ -76,6 +77,8 @@ export default function InvoiceHistory() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [timelineInvoice, setTimelineInvoice] = useState<Invoice | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -88,10 +91,13 @@ export default function InvoiceHistory() {
           client?.name.toLowerCase().includes(search.toLowerCase());
         const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
         const matchesClient = clientFilter === 'all' || invoice.clientId === clientFilter;
-        return matchesSearch && matchesStatus && matchesClient;
+        const invoiceDate = new Date(invoice.createdAt);
+        const matchesDateFrom = !dateFrom || invoiceDate >= new Date(dateFrom);
+        const matchesDateTo = !dateTo || invoiceDate <= new Date(dateTo + 'T23:59:59');
+        return matchesSearch && matchesStatus && matchesClient && matchesDateFrom && matchesDateTo;
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [invoices, clients, search, statusFilter, clientFilter]);
+  }, [invoices, clients, search, statusFilter, clientFilter, dateFrom, dateTo]);
 
   const formatCurrency = (amount: number) => {
     return `${settings.currencySymbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
@@ -216,42 +222,74 @@ export default function InvoiceHistory() {
       />
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search invoices..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search invoices..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[150px]">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="sent">Sent</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="overdue">Overdue</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={clientFilter} onValueChange={setClientFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="All Clients" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Clients</SelectItem>
+              {clients.map(client => (
+                <SelectItem key={client.id} value={client.id}>
+                  {client.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[150px]">
-            <Filter className="w-4 h-4 mr-2" />
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
-            <SelectItem value="sent">Sent</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="overdue">Overdue</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={clientFilter} onValueChange={setClientFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All Clients" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Clients</SelectItem>
-            {clients.map(client => (
-              <SelectItem key={client.id} value={client.id}>
-                {client.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col sm:flex-row gap-4 items-end">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">From Date</Label>
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full sm:w-[160px]"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">To Date</Label>
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full sm:w-[160px]"
+            />
+          </div>
+          {(dateFrom || dateTo) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setDateFrom(''); setDateTo(''); }}
+              className="text-muted-foreground"
+            >
+              Clear dates
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Invoices Table */}
