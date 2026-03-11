@@ -34,6 +34,7 @@ import { exportClientsToCSV } from '@/utils/csvExport';
 import { clientSchema, getErrorsObject } from '@/utils/validation';
 import { FormInput, FormTextarea } from '@/components/ui/form-field';
 import { z } from 'zod';
+import { ClientInvoiceHistory } from '@/components/clients/ClientInvoiceHistory';
 
 type FormErrors = Partial<Record<keyof z.infer<typeof clientSchema>, string>>;
 
@@ -43,6 +44,7 @@ export default function Clients() {
   const [search, setSearch] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [historyClient, setHistoryClient] = useState<Client | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
