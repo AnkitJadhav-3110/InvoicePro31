@@ -439,6 +439,17 @@ export default function Clients() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Client Invoice History */}
+      {historyClient && (
+        <ClientInvoiceHistory
+          client={historyClient}
+          invoices={invoices}
+          open={!!historyClient}
+          onOpenChange={(open) => !open && setHistoryClient(null)}
+          currencySymbol={settings.currencySymbol}
+        />
+      )}
     </div>
   );
 }
