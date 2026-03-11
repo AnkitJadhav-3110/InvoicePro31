@@ -90,7 +90,10 @@ export default function InvoiceHistory() {
           client?.name.toLowerCase().includes(search.toLowerCase());
         const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
         const matchesClient = clientFilter === 'all' || invoice.clientId === clientFilter;
-        return matchesSearch && matchesStatus && matchesClient;
+        const invoiceDate = new Date(invoice.createdAt);
+        const matchesDateFrom = !dateFrom || invoiceDate >= new Date(dateFrom);
+        const matchesDateTo = !dateTo || invoiceDate <= new Date(dateTo + 'T23:59:59');
+        return matchesSearch && matchesStatus && matchesClient && matchesDateFrom && matchesDateTo;
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [invoices, clients, search, statusFilter, clientFilter]);
