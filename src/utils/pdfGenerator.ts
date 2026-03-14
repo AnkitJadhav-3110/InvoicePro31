@@ -143,6 +143,12 @@ export async function generateInvoicePDF(
   if (invoice.template === 'corporate') {
     return generateCorporateBluePDF(invoice, client, business, settings);
   }
+  if (invoice.template === 'bw') {
+    return generateMinimalBWPDF(invoice, client, business, settings);
+  }
+  if (invoice.template === 'creative') {
+    return generateCreativePDF(invoice, client, business, settings);
+  }
 
   const pdf = new jsPDF('p', 'mm', 'a4');
   const cs = settings.currencySymbol;
