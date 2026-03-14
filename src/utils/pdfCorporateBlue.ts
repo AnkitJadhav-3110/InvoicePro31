@@ -67,6 +67,11 @@ function addImageSafe(
   }
 }
 
+function getDomainFromEmail(email: string): string {
+  const parts = email.split('@');
+  return parts.length > 1 ? `www.${parts[1]}` : '';
+}
+
 export async function generateCorporateBluePDF(
   invoice: Invoice | Omit<Invoice, 'id'>,
   client: Client,
@@ -82,15 +87,13 @@ export async function generateCorporateBluePDF(
     business.signature ? loadImageAsBase64(business.signature) : null,
   ]);
 
-  // ===== HEADER BAND (Dark blue rectangle) =====
+  // ===== HEADER BAND =====
   pdf.setFillColor(DARK_BLUE[0], DARK_BLUE[1], DARK_BLUE[2]);
   pdf.rect(0, 0, PAGE_WIDTH, 42, 'F');
 
-  // Diagonal decorative shapes (blue triangles)
+  // Diagonal decorative shapes
   pdf.setFillColor(BLUE[0], BLUE[1], BLUE[2]);
-  // Left diagonal
   pdf.triangle(0, 42, 0, 25, 30, 42, 'F');
-  // Right diagonal accent
   pdf.triangle(PAGE_WIDTH, 0, PAGE_WIDTH - 40, 0, PAGE_WIDTH, 20, 'F');
   pdf.triangle(PAGE_WIDTH, 30, PAGE_WIDTH - 25, 42, PAGE_WIDTH, 42, 'F');
 
@@ -99,13 +102,13 @@ export async function generateCorporateBluePDF(
     addImageSafe(pdf, logoData, MARGIN_X + 2, 6, 28, 18);
   }
 
-  // Company name below logo area (or in header if no logo)
+  // Company name
   pdf.setTextColor(WHITE[0], WHITE[1], WHITE[2]);
   pdf.setFontSize(14);
   pdf.setFont('helvetica', 'bold');
   const companyX = logoData ? MARGIN_X + 34 : MARGIN_X + 2;
   pdf.text(business.name, companyX, 16);
-  
+
   // Company tagline / address
   pdf.setFontSize(7);
   pdf.setFont('helvetica', 'normal');
@@ -126,7 +129,23 @@ export async function generateCorporateBluePDF(
   if (business.phone) pdf.text(`Phone: ${business.phone}`, metaX, 35, { align: 'right' });
   if (business.email) pdf.text(`Email: ${business.email}`, metaX, 40, { align: 'right' });
 
-  let y = 54;
+  // Company contact details row below header
+  let y = 47;
+  pdf.setTextColor(GRAY[0], GRAY[1], GRAY[2]);
+  pdf.setFontSize(7);
+  pdf.setFont('helvetica', 'normal');
+  const contactParts = [
+    business.phone ? `Phone: ${business.phone}` : '',
+    business.email ? `Email: ${business.email}` : '',
+    business.email ? `Website: ${getDomainFromEmail(business.email)}` : '',
+    business.address || '',
+  ].filter(Boolean);
+  if (contactParts.length > 0) {
+    pdf.text(contactParts.join('  |  '), PAGE_WIDTH / 2, y, { align: 'center' });
+    y += 7;
+  } else {
+    y += 5;
+  }
 
   // ===== INVOICE TO + PAYMENT METHOD =====
   const colWidth = CONTENT_WIDTH / 2;
@@ -159,7 +178,7 @@ export async function generateCorporateBluePDF(
 
   // Right: Payment Method
   const rightColX = MARGIN_X + colWidth + 10;
-  let pmY = 54;
+  let pmY = y - 11;
   pdf.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
   pdf.setFontSize(9);
   pdf.setFont('helvetica', 'bold');
@@ -172,6 +191,7 @@ export async function generateCorporateBluePDF(
   const paymentInfo = [
     business.taxId ? `Tax ID: ${business.taxId}` : '',
     `Account Name: ${business.name}`,
+    `Invoice #: ${invoice.invoiceNumber}`,
   ].filter(Boolean);
   paymentInfo.forEach((line, i) => {
     pdf.text(line, rightColX, pmY + i * 4.5);
@@ -194,7 +214,6 @@ export async function generateCorporateBluePDF(
   y += greetLines.length * 3.5 + 8;
 
   // ===== ITEMS TABLE =====
-  // Table header
   const colNo = { x: MARGIN_X, w: 14 };
   const colDesc = { x: MARGIN_X + 14, w: 76 };
   const colPrice = { x: MARGIN_X + 90, w: 30 };
@@ -222,6 +241,26 @@ export async function generateCorporateBluePDF(
     const lineTotal = item.quantity * item.price;
     const lineDiscount = lineTotal * (item.discount / 100);
     const amount = lineTotal - lineDiscount;
+
+    // Check page overflow
+    if (y + 10 > PAGE_HEIGHT - 75) {
+      pdf.addPage();
+      y = 20;
+      // Redraw table header on new page
+      pdf.setFillColor(TABLE_HEADER_BG[0], TABLE_HEADER_BG[1], TABLE_HEADER_BG[2]);
+      pdf.rect(MARGIN_X, y, CONTENT_WIDTH, 8, 'F');
+      pdf.setTextColor(WHITE[0], WHITE[1], WHITE[2]);
+      pdf.setFontSize(7.5);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('No.', colNo.x + 2, y + 5.5);
+      pdf.text('Product Description', colDesc.x + 2, y + 5.5);
+      pdf.text('Price', colPrice.x + colPrice.w / 2, y + 5.5, { align: 'center' });
+      pdf.text('Quantity', colQty.x + colQty.w / 2, y + 5.5, { align: 'center' });
+      pdf.text('Total', colTotal.x + colTotal.w - 2, y + 5.5, { align: 'right' });
+      y += 10;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+    }
 
     // Zebra stripe
     if (index % 2 === 0) {
@@ -302,13 +341,26 @@ export async function generateCorporateBluePDF(
   pdf.setTextColor(WHITE[0], WHITE[1], WHITE[2]);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Total:', summaryLabelX - 2, y + 7, { align: 'right' });
+  pdf.text('Grand Total:', summaryLabelX - 2, y + 7, { align: 'right' });
   pdf.text(formatCurrency(invoice.total, cs), summaryValueX - 2, y + 7, { align: 'right' });
 
   y += 18;
 
-  // ===== TERMS & CONDITIONS =====
+  // ===== TERMS & CONDITIONS + PAYMENT NOTES (left side) =====
   if (y < PAGE_HEIGHT - 70) {
+    // Payment Notes
+    pdf.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Payment Method We Accept:', MARGIN_X, y);
+    y += 4.5;
+    pdf.setTextColor(GRAY[0], GRAY[1], GRAY[2]);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7);
+    pdf.text('Bank Transfer, Credit Card, PayPal', MARGIN_X, y);
+    y += 8;
+
+    // Terms & Conditions
     pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
     pdf.setFontSize(9);
     pdf.setFont('helvetica', 'bold');
