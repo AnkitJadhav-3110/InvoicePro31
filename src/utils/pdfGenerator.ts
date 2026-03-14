@@ -2,6 +2,8 @@ import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import { Invoice, Client, Business, AppSettings } from '@/store/useStore';
 import { generateCorporateBluePDF } from './pdfCorporateBlue';
+import { generateMinimalBWPDF } from './pdfMinimalBW';
+import { generateCreativePDF } from './pdfCreative';
 
 const PAGE_WIDTH = 210;
 const PAGE_HEIGHT = 297;
