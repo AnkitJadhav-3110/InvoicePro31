@@ -94,6 +94,22 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
           accent: 'text-teal-600',
           accentBg: 'bg-gray-50',
         };
+      case 'bw':
+        return {
+          container: 'bg-white border-t-4 border-b-4 border-gray-900',
+          header: 'text-gray-900',
+          body: 'bg-white',
+          accent: 'text-gray-900',
+          accentBg: 'bg-gray-100',
+        };
+      case 'creative':
+        return {
+          container: 'bg-gradient-to-br from-red-400 to-orange-400',
+          header: 'text-white',
+          body: 'bg-white mt-6 rounded-t-3xl',
+          accent: 'text-red-500',
+          accentBg: 'bg-red-50',
+        };
       default:
         return {
           container: 'bg-white border border-gray-200',
