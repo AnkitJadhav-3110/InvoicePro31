@@ -2,6 +2,8 @@ import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import { Invoice, Client, Business, AppSettings } from '@/store/useStore';
 import { generateCorporateBluePDF } from './pdfCorporateBlue';
+import { generateMinimalBWPDF } from './pdfMinimalBW';
+import { generateCreativePDF } from './pdfCreative';
 
 const PAGE_WIDTH = 210;
 const PAGE_HEIGHT = 297;
@@ -140,6 +142,12 @@ export async function generateInvoicePDF(
   // Use corporate blue template when selected
   if (invoice.template === 'corporate') {
     return generateCorporateBluePDF(invoice, client, business, settings);
+  }
+  if (invoice.template === 'bw') {
+    return generateMinimalBWPDF(invoice, client, business, settings);
+  }
+  if (invoice.template === 'creative') {
+    return generateCreativePDF(invoice, client, business, settings);
   }
 
   const pdf = new jsPDF('p', 'mm', 'a4');
