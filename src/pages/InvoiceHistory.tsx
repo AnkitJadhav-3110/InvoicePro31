@@ -340,7 +340,7 @@ export default function InvoiceHistory() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInvoices.map(invoice => {
+                {paginatedInvoices.map(invoice => {
                   const client = clients.find(c => c.id === invoice.clientId);
                   const statusConfig = getStatusConfig(invoice.status);
                   const StatusIcon = statusConfig.icon;
