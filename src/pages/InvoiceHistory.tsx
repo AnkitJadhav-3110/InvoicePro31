@@ -102,6 +102,16 @@ export default function InvoiceHistory() {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [invoices, clients, search, statusFilter, clientFilter, dateFrom, dateTo]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredInvoices.length / ITEMS_PER_PAGE));
+  const paginatedInvoices = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredInvoices.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredInvoices, currentPage]);
+
+  // Reset to page 1 when filters change  
+  const filterKey = `${search}|${statusFilter}|${clientFilter}|${dateFrom}|${dateTo}`;
+  useMemo(() => { setCurrentPage(1); }, [filterKey]);
+
   const formatCurrency = (amount: number) => {
     return `${settings.currencySymbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
   };
