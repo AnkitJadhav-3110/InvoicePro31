@@ -257,11 +257,11 @@ export async function generateDarkLuxuryPDF(
     pdf.text(descText[0] || '', cols.desc + 2, y);
     pdf.text(String(item.quantity), cols.qty, y, { align: 'center' });
     pdf.text(fmt(item.price, cs), cols.price, y, { align: 'center' });
-    pdf.text(`${item.tax}%`, cols.tax, y, { align: 'center' });
+    pdf.text(`${item.taxRate || 0}%`, cols.tax, y, { align: 'center' });
 
     setC(pdf, C.lightGold);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(fmt(item.total, cs), cols.total - 2, y, { align: 'right' });
+    pdf.text(fmt(itemTotal, cs), cols.total - 2, y, { align: 'right' });
 
     y += 8;
   });
