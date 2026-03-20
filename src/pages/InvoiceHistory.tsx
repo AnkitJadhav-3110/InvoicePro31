@@ -482,6 +482,7 @@ export default function InvoiceHistory() {
             </div>
           </div>
         )}
+        </>
       )}
 
       {/* Delete Confirmation Dialog */}
