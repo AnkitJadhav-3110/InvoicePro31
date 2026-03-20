@@ -110,6 +110,14 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
           accent: 'text-red-500',
           accentBg: 'bg-red-50',
         };
+      case 'luxury':
+        return {
+          container: 'bg-gradient-to-br from-slate-900 to-slate-800',
+          header: 'text-yellow-400',
+          body: 'bg-slate-900 text-white',
+          accent: 'text-yellow-500',
+          accentBg: 'bg-slate-800',
+        };
       default:
         return {
           container: 'bg-white border border-gray-200',

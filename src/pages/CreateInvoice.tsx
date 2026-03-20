@@ -46,6 +46,7 @@ const templates: { id: InvoiceTemplate; name: string; description: string }[] = 
   { id: 'teal', name: 'Corporate Teal', description: 'Modern with accent bar' },
   { id: 'bw', name: 'Minimalist B&W', description: 'Black and white elegance' },
   { id: 'creative', name: 'Creative Colorful', description: 'Vibrant coral and orange' },
+  { id: 'luxury', name: 'Dark Luxury', description: 'Navy & gold premium' },
 ];
 
 const paymentTerms = [
