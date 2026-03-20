@@ -12,6 +12,8 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
+  ChevronLeft,
+  ChevronRight,
   FileDown,
   Plus,
   Mail,
