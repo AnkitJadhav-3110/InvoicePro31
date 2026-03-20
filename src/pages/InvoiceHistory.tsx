@@ -83,7 +83,8 @@ export default function InvoiceHistory() {
   const [dateTo, setDateTo] = useState('');
   const [timelineInvoice, setTimelineInvoice] = useState<Invoice | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const filteredInvoices = useMemo(() => {
     return invoices
       .filter(invoice => {
