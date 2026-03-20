@@ -325,6 +325,7 @@ export default function InvoiceHistory() {
           }
         />
       ) : (
+        <>
         <div className="border rounded-xl overflow-hidden shadow-card">
           <div className="overflow-x-auto">
             <Table>
