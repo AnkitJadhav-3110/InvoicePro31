@@ -108,9 +108,8 @@ export default function InvoiceHistory() {
     return filteredInvoices.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredInvoices, currentPage]);
 
-  // Reset to page 1 when filters change  
-  const filterKey = `${search}|${statusFilter}|${clientFilter}|${dateFrom}|${dateTo}`;
-  useMemo(() => { setCurrentPage(1); }, [filterKey]);
+  // Reset to page 1 when filters change
+  useEffect(() => { setCurrentPage(1); }, [search, statusFilter, clientFilter, dateFrom, dateTo]);
 
   const formatCurrency = (amount: number) => {
     return `${settings.currencySymbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
