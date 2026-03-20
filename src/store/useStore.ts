@@ -53,7 +53,7 @@ export interface InvoiceItem {
   discount: number;
 }
 
-export type InvoiceTemplate = 'minimal' | 'modern' | 'corporate' | 'dark' | 'clean' | 'teal' | 'bw' | 'creative';
+export type InvoiceTemplate = 'minimal' | 'modern' | 'corporate' | 'dark' | 'clean' | 'teal' | 'bw' | 'creative' | 'luxury';
 
 export interface InvoiceStatusEvent {
   status: 'draft' | 'sent' | 'paid' | 'overdue';

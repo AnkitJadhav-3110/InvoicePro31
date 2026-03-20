@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDataSync } from '@/hooks/useDataSync';
 import {
@@ -12,6 +12,8 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
+  ChevronLeft,
+  ChevronRight,
   FileDown,
   Plus,
   Mail,
@@ -81,7 +83,8 @@ export default function InvoiceHistory() {
   const [dateTo, setDateTo] = useState('');
   const [timelineInvoice, setTimelineInvoice] = useState<Invoice | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const filteredInvoices = useMemo(() => {
     return invoices
       .filter(invoice => {
@@ -98,6 +101,15 @@ export default function InvoiceHistory() {
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [invoices, clients, search, statusFilter, clientFilter, dateFrom, dateTo]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredInvoices.length / ITEMS_PER_PAGE));
+  const paginatedInvoices = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredInvoices.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredInvoices, currentPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => { setCurrentPage(1); }, [search, statusFilter, clientFilter, dateFrom, dateTo]);
 
   const formatCurrency = (amount: number) => {
     return `${settings.currencySymbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
@@ -312,6 +324,7 @@ export default function InvoiceHistory() {
           }
         />
       ) : (
+        <>
         <div className="border rounded-xl overflow-hidden shadow-card">
           <div className="overflow-x-auto">
             <Table>
@@ -327,7 +340,7 @@ export default function InvoiceHistory() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInvoices.map(invoice => {
+                {paginatedInvoices.map(invoice => {
                   const client = clients.find(c => c.id === invoice.clientId);
                   const statusConfig = getStatusConfig(invoice.status);
                   const StatusIcon = statusConfig.icon;
@@ -420,6 +433,55 @@ export default function InvoiceHistory() {
             </Table>
           </div>
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t">
+            <p className="text-sm text-muted-foreground">
+              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredInvoices.length)} of {filteredInvoices.length}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Previous</span>
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+                  .map((page, idx, arr) => (
+                    <span key={page} className="contents">
+                      {idx > 0 && arr[idx - 1] !== page - 1 && (
+                        <span className="text-muted-foreground px-1">…</span>
+                      )}
+                      <Button
+                        variant={page === currentPage ? 'default' : 'outline'}
+                        size="sm"
+                        className="w-8 h-8 p-0"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    </span>
+                  ))}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+        </>
       )}
 
       {/* Delete Confirmation Dialog */}
