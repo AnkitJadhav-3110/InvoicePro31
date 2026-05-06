@@ -16,6 +16,7 @@ import {
 import { useStore } from '@/store/useStore';
 import { useDataSync } from '@/hooks/useDataSync';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { supabase } from '@/integrations/supabase/client';
 import type { InvoiceItem, InvoiceTemplate, InvoiceAttachment } from '@/store/useStore';
 import { PageHeader } from '@/components/ui/page-header';
@@ -90,6 +91,7 @@ export default function CreateInvoice() {
   const [attachments, setAttachments] = useState<InvoiceAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
+  const { ensureAuth, ensureOwnsInvoice } = useAuthGuard();
 
   // Load editing invoice data
   useEffect(() => {
@@ -272,6 +274,8 @@ export default function CreateInvoice() {
   };
 
   const handleSave = async (status: 'draft' | 'sent' = 'draft') => {
+    if (!ensureAuth()) return;
+    if (editId && !(await ensureOwnsInvoice(editId))) return;
     if (!currentBusinessId) {
       toast.error('Please select a business profile');
       return;
@@ -340,6 +344,7 @@ export default function CreateInvoice() {
   };
 
   const handleDownload = async () => {
+    if (!ensureAuth()) return;
     if (!currentBusiness || !selectedClient) {
       toast.error('Please select business and client');
       return;
