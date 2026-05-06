@@ -23,6 +23,7 @@ import {
   X,
 } from 'lucide-react';
 import { useStore, Invoice } from '@/store/useStore';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,7 @@ export default function InvoiceHistory() {
   const navigate = useNavigate();
   const { invoices, clients, businesses, settings } = useStore();
   const { duplicateInvoice, deleteInvoice, updateInvoice } = useDataSync();
+  const { ensureAuth, ensureOwnsInvoice } = useAuthGuard();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
@@ -163,19 +165,21 @@ export default function InvoiceHistory() {
   const handleEdit = (id: string) => navigate(`/invoices/create?edit=${id}`);
 
   const handleDuplicate = async (id: string) => {
+    if (!(await ensureOwnsInvoice(id))) return;
     const newId = await duplicateInvoice(id);
     if (newId) toast.success('Invoice duplicated');
   };
 
   const handleConfirmDelete = async () => {
-    if (deleteId) {
-      await deleteInvoice(deleteId);
-      toast.success('Invoice deleted');
-      setDeleteId(null);
-    }
+    if (!deleteId) return;
+    if (!(await ensureOwnsInvoice(deleteId))) { setDeleteId(null); return; }
+    await deleteInvoice(deleteId);
+    toast.success('Invoice deleted');
+    setDeleteId(null);
   };
 
   const handleDownload = async (invoiceId: string) => {
+    if (!(await ensureOwnsInvoice(invoiceId))) return;
     const invoice = invoices.find(i => i.id === invoiceId);
     if (!invoice) return;
     const client = clients.find(c => c.id === invoice.clientId);
@@ -188,16 +192,19 @@ export default function InvoiceHistory() {
   };
 
   const handleMarkPaid = async (id: string) => {
+    if (!(await ensureOwnsInvoice(id))) return;
     await updateInvoice(id, { status: 'paid', isPaid: true });
     toast.success('Invoice marked as paid');
   };
 
   const handleMarkSent = async (id: string) => {
+    if (!(await ensureOwnsInvoice(id))) return;
     await updateInvoice(id, { status: 'sent' });
     toast.success('Invoice marked as sent');
   };
 
   const handleSendEmail = async (invoiceId: string) => {
+    if (!(await ensureOwnsInvoice(invoiceId))) return;
     const invoice = invoices.find(i => i.id === invoiceId);
     if (!invoice) return;
     const client = clients.find(c => c.id === invoice.clientId);
@@ -215,6 +222,7 @@ export default function InvoiceHistory() {
 
   // Bulk actions
   const handleBulkMarkPaid = async () => {
+    if (!ensureAuth()) return;
     const ids = Array.from(selectedIds);
     let count = 0;
     for (const id of ids) {
@@ -226,6 +234,7 @@ export default function InvoiceHistory() {
   };
 
   const handleBulkDownload = async () => {
+    if (!ensureAuth()) return;
     const ids = Array.from(selectedIds);
     let count = 0;
     for (const id of ids) {
@@ -241,6 +250,7 @@ export default function InvoiceHistory() {
   };
 
   const handleBulkDeleteConfirm = async () => {
+    if (!ensureAuth()) return;
     const ids = Array.from(selectedIds);
     for (const id of ids) await deleteInvoice(id);
     toast.success(`${ids.length} invoice${ids.length !== 1 ? 's' : ''} deleted`);
