@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Moon, Sun, Menu, Bell, Clock, AlertCircle, FileText, Sparkles, Receipt, LogOut } from 'lucide-react';
+import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/contexts/AuthContext';
@@ -111,8 +112,8 @@ export function Header({ onMenuToggle }: HeaderProps) {
             onClick={() => navigate('/dashboard')}
             className="flex items-center gap-2.5 group"
           >
-            <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-              <Receipt className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-card border border-border flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow overflow-hidden">
+              <AppLogo className="w-7 h-7" />
             </div>
             <div className="hidden sm:flex flex-col">
               <span className="text-lg font-bold text-foreground tracking-tight leading-none">
