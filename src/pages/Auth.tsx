@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { lovable } from '@/integrations/lovable/index';
+import { AppLogo } from '@/components/AppLogo';
 
 function GoogleIcon() {
   return (
@@ -81,10 +82,8 @@ export default function Auth() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
-            <div className="bg-primary p-2 rounded-lg">
-              <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+            <div className="bg-card border border-border p-2 rounded-lg overflow-hidden">
+              <AppLogo className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">InvoicePro</h1>
           </div>

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { AppLogo } from '@/components/AppLogo';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -138,8 +139,8 @@ function SidebarContent({
             collapsed ? "justify-center" : ""
           )}
         >
-          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-md flex-shrink-0">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden">
+            <AppLogo className="w-8 h-8" />
           </div>
           {!collapsed && (
             <span className="font-bold text-lg tracking-tight text-foreground">

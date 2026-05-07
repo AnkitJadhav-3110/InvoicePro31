@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { motion } from 'framer-motion';
+import { AppLogo } from '@/components/AppLogo';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -62,8 +63,8 @@ export default function Landing() {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-[1200px] mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-md">
-              <Receipt className="w-5 h-5 text-primary-foreground" />
+            <div className="w-9 h-9 rounded-xl bg-card border border-border flex items-center justify-center shadow-md overflow-hidden">
+              <AppLogo className="w-7 h-7" />
             </div>
             <span className="text-lg font-bold tracking-tight">
               Invoice<span className="text-primary">Pro</span>

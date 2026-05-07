@@ -245,7 +245,12 @@ export async function generateDarkLuxuryPDF(
   const items = invoice.items as unknown as Array<{ description: string; quantity: number; price: number; taxRate: number; discount: number }>;
   items.forEach((item, i) => {
     const itemTotal = item.quantity * item.price * (1 + (item.taxRate || 0) / 100) * (1 - (item.discount || 0) / 100);
+    const before = y;
     y = checkPageBreak(8);
+    // If a page break occurred, redraw the table header on the new page.
+    if (y !== before) {
+      y = drawTableHeader(y + 4);
+    }
     if (i % 2 === 0) {
       pdf.setFillColor(C.darkNavy[0], C.darkNavy[1], C.darkNavy[2]);
       pdf.rect(MX, y - 4, CW, 8, 'F');
