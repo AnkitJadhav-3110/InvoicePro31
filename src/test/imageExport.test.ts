@@ -42,13 +42,20 @@ describe('PNG/JPG image export per template', () => {
     });
 
     it(`embeds key text on the canvas for "${template}"`, async () => {
-      // We can't decode pixels in jsdom, but we can spy on fillText.
       const calls: string[] = [];
-      const orig = CanvasRenderingContext2D.prototype.fillText;
-      CanvasRenderingContext2D.prototype.fillText = function (text: string) {
-        calls.push(String(text));
-        return undefined as any;
-      };
+      const origGet = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (type: string) {
+        const ctx = origGet.call(this, type as any) as any;
+        if (ctx && type === '2d') {
+          const wrapped = {
+            ...ctx,
+            fillRect: () => {},
+            fillText: (t: string) => { calls.push(String(t)); },
+          };
+          return wrapped as any;
+        }
+        return ctx;
+      } as any;
       try {
         const inv = buildInvoice(template, 2);
         await exportInvoiceImage(inv, sampleClient, sampleBusiness, sampleSettings, 'png');
@@ -56,9 +63,9 @@ describe('PNG/JPG image export per template', () => {
         expect(joined).toContain(sampleBusiness.name);
         expect(joined).toContain(sampleClient.name);
         expect(joined).toContain(inv.invoiceNumber);
-        expect(joined).toContain('440.00'); // 2 items @ qty2 * 100 + 10% tax
+        expect(joined).toContain('440.00');
       } finally {
-        CanvasRenderingContext2D.prototype.fillText = orig;
+        HTMLCanvasElement.prototype.getContext = origGet;
       }
     });
   }
