@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:release": "vitest run src/test/pdfGenerator.test.ts src/test/pdfContent.test.ts src/test/pdfDownloadSmoke.test.ts src/test/authGuard.test.tsx"
+    "test:release": "vitest run src/test/pdfGenerator.test.ts src/test/pdfContent.test.ts src/test/pdfDownloadSmoke.test.ts src/test/authGuard.test.tsx src/test/resourceGuard.test.tsx src/test/customTemplatePDF.test.ts src/test/imageExport.test.ts",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -84,7 +85,9 @@
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^4.3.0",
+    "@vitest/coverage-v8": "^4.1.5",
     "autoprefixer": "^10.4.21",
+    "canvas": "^3.2.3",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
