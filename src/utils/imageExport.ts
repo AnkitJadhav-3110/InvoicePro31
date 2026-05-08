@@ -2,6 +2,45 @@ import jsPDF from 'jspdf';
 import { Invoice, Client, Business, AppSettings } from '@/store/useStore';
 import { generateInvoicePDF } from './pdfGenerator';
 
+export class ImageExportAuthError extends Error {
+  constructor(message = 'Unauthorized') {
+    super(message);
+    this.name = 'ImageExportAuthError';
+  }
+}
+
+/**
+ * Authorized wrapper around exportInvoiceImage. Verifies that the caller
+ * owns the invoice before any rendering happens, so unauthorized users
+ * cannot cause another user's invoice data to be rasterized or returned.
+ */
+export async function exportInvoiceImageAuthorized(params: {
+  invoice: Invoice | Omit<Invoice, 'id'>;
+  client: Client;
+  business: Business;
+  settings: AppSettings;
+  format?: 'png' | 'jpeg';
+  currentUserId: string | null | undefined;
+  invoiceOwnerId: string | null | undefined;
+  clientOwnerId?: string | null | undefined;
+}): Promise<Blob> {
+  const {
+    invoice, client, business, settings, format = 'png',
+    currentUserId, invoiceOwnerId, clientOwnerId,
+  } = params;
+
+  if (!currentUserId) {
+    throw new ImageExportAuthError('You must be signed in to export invoices.');
+  }
+  if (!invoiceOwnerId || invoiceOwnerId !== currentUserId) {
+    throw new ImageExportAuthError('You are not authorized to export this invoice.');
+  }
+  if (clientOwnerId && clientOwnerId !== currentUserId) {
+    throw new ImageExportAuthError('Client does not belong to current user.');
+  }
+  return exportInvoiceImage(invoice, client, business, settings, format);
+}
+
 /**
  * Render the invoice PDF and embed key text into a PNG/JPG raster as a
  * lightweight image export. Uses a 2D canvas (works in jsdom for tests).
