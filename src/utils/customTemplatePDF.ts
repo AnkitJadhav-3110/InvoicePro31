@@ -200,13 +200,23 @@ function drawSimpleFields(
   }
 }
 
+export interface GenerateCustomTemplateOptions {
+  /** When true, refuse to generate a PDF for invalid mappings (throws TemplateMappingError). */
+  strict?: boolean;
+}
+
 export async function generateCustomTemplatePDF(
   template: CustomTemplate,
   invoice: Invoice | Omit<Invoice, 'id'>,
   client: Client,
   business: Business,
   settings: AppSettings,
+  options: GenerateCustomTemplateOptions = {},
 ): Promise<Blob> {
+  if (options.strict) {
+    const v = validateTemplateMapping(template ?? ({} as CustomTemplate));
+    if (!v.ok) throw new TemplateMappingError(v.issues);
+  }
   if (!template || !Array.isArray(template.fieldMappings)) {
     // Graceful: produce an empty but valid PDF rather than throwing.
     const pdf = new jsPDF('p', 'mm', 'a4');
