@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:release": "vitest run src/test/pdfGenerator.test.ts src/test/pdfContent.test.ts src/test/pdfDownloadSmoke.test.ts src/test/authGuard.test.tsx src/test/resourceGuard.test.tsx src/test/customTemplatePDF.test.ts src/test/imageExport.test.ts src/test/templateEditorE2E.test.ts src/test/imageExportAuth.test.ts",
+    "test:release": "vitest run src/test/pdfGenerator.test.ts src/test/pdfContent.test.ts src/test/pdfDownloadSmoke.test.ts src/test/authGuard.test.tsx src/test/resourceGuard.test.tsx src/test/customTemplatePDF.test.ts src/test/imageExport.test.ts src/test/templateEditorE2E.test.ts src/test/imageExportAuth.test.ts src/test/imageExportFormatsAuth.test.ts src/test/shareInvoiceAuth.test.ts src/test/customTemplateInvalid.test.ts",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
