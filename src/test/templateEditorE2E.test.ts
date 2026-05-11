@@ -116,13 +116,28 @@ describe('Template upload → mapping → save → multi-page PDF (E2E)', () => 
     const text = streams(raw);
     expect(countOccurrences(text, 'DESCRIPTION')).toBeGreaterThanOrEqual(pages);
 
-    // Mapped header content must still render on the first page.
-    expect(text).toContain(sampleBusiness.name);
-    expect(text).toContain(sampleClient.name);
-    expect(text).toContain(invoice.invoiceNumber);
+    // Mapped header/footer content must repeat on EVERY overflow page,
+    // not just the first one. We assert each value appears at least
+    // `pages` times across all content streams.
+    const totalStr = invoice.total.toFixed(2);
+    const notesStr = invoice.notes!;
+    const invNoStr = invoice.invoiceNumber;
 
-    // Total reflects the mapped value (no placeholders).
-    expect(text).toContain(invoice.total.toFixed(2));
+    expect(countOccurrences(text, invNoStr)).toBeGreaterThanOrEqual(pages);
+    expect(countOccurrences(text, totalStr)).toBeGreaterThanOrEqual(pages);
+    expect(countOccurrences(text, notesStr)).toBeGreaterThanOrEqual(pages);
+    expect(countOccurrences(text, sampleBusiness.name)).toBeGreaterThanOrEqual(pages);
+    expect(countOccurrences(text, sampleClient.name)).toBeGreaterThanOrEqual(pages);
+
+    // jsPDF emits text positioning operators (Td) for each placement; the
+    // mapped fields must be re-positioned on every page, so the count of
+    // text-placement ops must be at least pages * (number of simple fields).
+    const simpleFieldCount = MAPPING.filter(
+      (m) => m.fieldType !== 'items' && m.fieldType !== 'logo',
+    ).length;
+    const tdCount = (text.match(/\bTd\b/g) || []).length;
+    expect(tdCount).toBeGreaterThanOrEqual(pages * simpleFieldCount);
+
     for (const bad of ['undefined', 'NaN', '{{', '}}', '[object Object]']) {
       expect(text.includes(bad)).toBe(false);
     }
