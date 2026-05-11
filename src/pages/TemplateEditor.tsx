@@ -93,6 +93,16 @@ export default function TemplateEditor() {
     setIsDragging(false);
   };
 
+  const validation = useMemo(
+    () =>
+      validateTemplateMapping({
+        name: templateName,
+        backgroundImage: backgroundImage ?? '',
+        fieldMappings: fields,
+      }),
+    [templateName, backgroundImage, fields],
+  );
+
   const saveTemplate = () => {
     if (!templateName) {
       toast.error('Please enter a template name');
@@ -104,6 +114,13 @@ export default function TemplateEditor() {
     }
     if (fields.length === 0) {
       toast.error('Please add at least one field');
+      return;
+    }
+
+    if (!validation.ok) {
+      toast.error('Mapping is incomplete. Fix the issues before saving.', {
+        description: validation.issues[0],
+      });
       return;
     }
 
