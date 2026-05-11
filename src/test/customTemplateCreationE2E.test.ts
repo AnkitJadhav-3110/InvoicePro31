@@ -198,7 +198,11 @@ describe('Custom template creation — full E2E workflow', () => {
     const pages = pageCount(raw);
     expect(pages).toBeGreaterThanOrEqual(2);
     // Total + business name repeat on every page.
-    const occ = (s: string) => (raw.match(new RegExp(s.replace(/[.$()*+?\\\[\]\\\\]/g, '\\\\$&'), 'g')) || []).length;
+    const occ = (needle: string) => {
+      let i = 0, c = 0;
+      while ((i = raw.indexOf(needle, i)) !== -1) { c++; i += needle.length; }
+      return c;
+    };
     expect(occ(sampleBusiness.name)).toBeGreaterThanOrEqual(pages);
     expect(occ(inv.total.toFixed(2))).toBeGreaterThanOrEqual(pages);
   });
