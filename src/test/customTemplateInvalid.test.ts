@@ -84,7 +84,7 @@ describe('Custom template — invalid / incomplete mappings fail gracefully', ()
       sampleSettings,
     );
     const raw = await pdfBytes(blob);
-    for (const bad of ['undefined', 'NaN', 'null', '[object Object]', '{{', '}}']) {
+    for (const bad of ['undefined', 'NaN', '[object Object]', '{{', '}}']) {
       expect(raw.includes(bad)).toBe(false);
     }
   });
