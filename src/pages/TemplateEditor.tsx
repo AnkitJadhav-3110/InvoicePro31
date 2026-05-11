@@ -1,11 +1,13 @@
-import { useState, useRef } from 'react';
-import { Upload, Plus, Trash2, Save, Move } from 'lucide-react';
+import { useMemo, useState, useRef } from 'react';
+import { Upload, Plus, Trash2, Save, Move, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useStore, FieldMapping } from '@/store/useStore';
+import { validateTemplateMapping } from '@/utils/customTemplatePDF';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '@/lib/utils';
