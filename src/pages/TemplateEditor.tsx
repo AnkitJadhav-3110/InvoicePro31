@@ -268,7 +268,25 @@ export default function TemplateEditor() {
             </Card>
           )}
 
-          <Button onClick={saveTemplate} className="w-full">
+          {!validation.ok && fields.length > 0 && (
+            <Alert variant="destructive" data-testid="template-mapping-errors">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Mapping is incomplete</AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc pl-4 mt-2 space-y-1 text-xs">
+                  {validation.issues.slice(0, 5).map((m, i) => (
+                    <li key={i}>{m}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Button
+            onClick={saveTemplate}
+            className="w-full"
+            disabled={!validation.ok || !templateName || !backgroundImage}
+          >
             <Save className="w-4 h-4 mr-2" />
             Save Template
           </Button>
