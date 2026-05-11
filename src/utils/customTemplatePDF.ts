@@ -46,6 +46,72 @@ function isValidField(field: FieldMapping | undefined | null): field is FieldMap
   return true;
 }
 
+export class TemplateMappingError extends Error {
+  issues: string[];
+  constructor(issues: string[]) {
+    super(issues[0] ?? 'Invalid template mapping');
+    this.issues = issues;
+    this.name = 'TemplateMappingError';
+  }
+}
+
+export interface TemplateValidationResult {
+  ok: boolean;
+  issues: string[];
+}
+
+/**
+ * Validates a CustomTemplate's mappings BEFORE PDF generation. Returns a
+ * list of human-readable issues so the editor can surface them inline and
+ * refuse to generate a malformed PDF.
+ */
+export function validateTemplateMapping(
+  template: Pick<CustomTemplate, 'fieldMappings' | 'backgroundImage' | 'name'>,
+): TemplateValidationResult {
+  const issues: string[] = [];
+  if (!template) {
+    return { ok: false, issues: ['Template is missing.'] };
+  }
+  if (!template.backgroundImage || !/^data:image\//.test(template.backgroundImage)) {
+    issues.push('Background image is missing or invalid.');
+  }
+  if (!Array.isArray(template.fieldMappings) || template.fieldMappings.length === 0) {
+    issues.push('At least one field must be mapped.');
+    return { ok: false, issues };
+  }
+
+  const required: FieldMapping['fieldType'][] = ['businessName', 'clientName', 'invoiceNumber', 'total', 'items'];
+  const present = new Set(template.fieldMappings.map((f) => f.fieldType));
+  for (const r of required) {
+    if (!present.has(r)) issues.push(`Required field "${r}" is not mapped.`);
+  }
+
+  template.fieldMappings.forEach((f, i) => {
+    if (!f || typeof f !== 'object') {
+      issues.push(`Field #${i + 1} is not an object.`);
+      return;
+    }
+    if (!KNOWN_FIELD_TYPES.has(f.fieldType as FieldMapping['fieldType'])) {
+      issues.push(`Field #${i + 1} has unknown type "${String(f.fieldType)}".`);
+    }
+    for (const key of ['x', 'y', 'width', 'height', 'fontSize'] as const) {
+      const v = (f as any)[key];
+      if (typeof v !== 'number' || !Number.isFinite(v)) {
+        issues.push(`Field "${f.fieldType}" has non-numeric ${key}.`);
+      }
+    }
+    if (isFiniteNumber(f.width) && f.width <= 0) issues.push(`Field "${f.fieldType}" has non-positive width.`);
+    if (isFiniteNumber(f.height) && f.height <= 0) issues.push(`Field "${f.fieldType}" has non-positive height.`);
+    if (isFiniteNumber(f.x) && f.x < 0) issues.push(`Field "${f.fieldType}" has negative x.`);
+    if (isFiniteNumber(f.y) && f.y < 0) issues.push(`Field "${f.fieldType}" has negative y.`);
+    if (typeof f.color !== 'string' || !/^#?[0-9a-fA-F]{3,8}$/.test(f.color)) {
+      issues.push(`Field "${f.fieldType}" has invalid color.`);
+    }
+  });
+
+  return { ok: issues.length === 0, issues };
+}
+
 function pxToMm(px: number) {
   return (px / 600) * (PAGE_HEIGHT - 2 * MARGIN) + MARGIN;
 }
@@ -134,13 +200,23 @@ function drawSimpleFields(
   }
 }
 
+export interface GenerateCustomTemplateOptions {
+  /** When true, refuse to generate a PDF for invalid mappings (throws TemplateMappingError). */
+  strict?: boolean;
+}
+
 export async function generateCustomTemplatePDF(
   template: CustomTemplate,
   invoice: Invoice | Omit<Invoice, 'id'>,
   client: Client,
   business: Business,
   settings: AppSettings,
+  options: GenerateCustomTemplateOptions = {},
 ): Promise<Blob> {
+  if (options.strict) {
+    const v = validateTemplateMapping(template ?? ({} as CustomTemplate));
+    if (!v.ok) throw new TemplateMappingError(v.issues);
+  }
   if (!template || !Array.isArray(template.fieldMappings)) {
     // Graceful: produce an empty but valid PDF rather than throwing.
     const pdf = new jsPDF('p', 'mm', 'a4');

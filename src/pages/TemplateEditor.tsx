@@ -1,11 +1,13 @@
-import { useState, useRef } from 'react';
-import { Upload, Plus, Trash2, Save, Move } from 'lucide-react';
+import { useMemo, useState, useRef } from 'react';
+import { Upload, Plus, Trash2, Save, Move, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useStore, FieldMapping } from '@/store/useStore';
+import { validateTemplateMapping } from '@/utils/customTemplatePDF';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '@/lib/utils';
@@ -91,6 +93,16 @@ export default function TemplateEditor() {
     setIsDragging(false);
   };
 
+  const validation = useMemo(
+    () =>
+      validateTemplateMapping({
+        name: templateName,
+        backgroundImage: backgroundImage ?? '',
+        fieldMappings: fields,
+      }),
+    [templateName, backgroundImage, fields],
+  );
+
   const saveTemplate = () => {
     if (!templateName) {
       toast.error('Please enter a template name');
@@ -102,6 +114,13 @@ export default function TemplateEditor() {
     }
     if (fields.length === 0) {
       toast.error('Please add at least one field');
+      return;
+    }
+
+    if (!validation.ok) {
+      toast.error('Mapping is incomplete. Fix the issues before saving.', {
+        description: validation.issues[0],
+      });
       return;
     }
 
@@ -249,7 +268,25 @@ export default function TemplateEditor() {
             </Card>
           )}
 
-          <Button onClick={saveTemplate} className="w-full">
+          {!validation.ok && fields.length > 0 && (
+            <Alert variant="destructive" data-testid="template-mapping-errors">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Mapping is incomplete</AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc pl-4 mt-2 space-y-1 text-xs">
+                  {validation.issues.slice(0, 5).map((m, i) => (
+                    <li key={i}>{m}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Button
+            onClick={saveTemplate}
+            className="w-full"
+            disabled={!validation.ok || !templateName || !backgroundImage}
+          >
             <Save className="w-4 h-4 mr-2" />
             Save Template
           </Button>
