@@ -438,7 +438,7 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
 
         {business?.signature && (
           <div className="mt-6 text-right">
-            <img src={business.signature} alt="Signature" className="h-12 ml-auto" />
+            <img src={business.signature} alt="Authorized signature" className="h-12 ml-auto" />
             <p className="text-sm text-gray-500">Authorized Signature</p>
           </div>
         )}
