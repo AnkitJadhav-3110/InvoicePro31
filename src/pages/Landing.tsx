@@ -81,6 +81,7 @@ export default function Landing() {
               size="icon"
               onClick={toggleTheme}
               className="rounded-lg"
+              aria-label="Toggle theme"
             >
               {settings.theme === 'dark' ? (
                 <Sun className="w-5 h-5" />
@@ -404,6 +405,19 @@ export default function Landing() {
 
       {/* FAQ Section */}
       <section id="faq" className="py-20 sm:py-28 bg-muted/30">
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              { "@type": "Question", "name": "Is this a subscription?", "acceptedAnswer": { "@type": "Answer", "text": "No! InvoicePro is a one-time purchase. Pay $50 once and get lifetime access with free updates." } },
+              { "@type": "Question", "name": "Can I upload my own invoice template?", "acceptedAnswer": { "@type": "Answer", "text": "Yes! You can upload any PDF, PNG, or JPG invoice design and use our drag-and-drop editor to map fields onto your template." } },
+              { "@type": "Question", "name": "Does it support taxes and discounts?", "acceptedAnswer": { "@type": "Answer", "text": "Absolutely. You can configure default tax rates, per-item tax rates, and discounts. Everything calculates automatically." } },
+              { "@type": "Question", "name": "Is my data stored securely?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. All data is encrypted and stored securely with row-level security policies ensuring only you can access your data." } },
+              { "@type": "Question", "name": "Can I edit invoices after creating them?", "acceptedAnswer": { "@type": "Answer", "text": "Yes! You can edit any invoice from the Invoice History page. You can also duplicate invoices to quickly create similar ones." } }
+            ]
+          })}
+        </script>
         <div className="max-w-[1200px] mx-auto px-6 sm:px-8">
           <motion.div
             className="text-center mb-16 space-y-4"

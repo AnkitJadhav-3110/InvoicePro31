@@ -155,7 +155,7 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
             </div>
             <div className="text-right">
               {business?.logo ? (
-                <img src={business.logo} alt="Logo" className="h-14 ml-auto mb-3 object-contain" />
+                <img src={business.logo} alt="Business logo" className="h-14 ml-auto mb-3 object-contain" />
               ) : (
                 <div className="text-right mb-3">
                   <p className="text-lg font-bold text-gray-800">{business?.name || 'Your Company'}</p>
@@ -268,7 +268,7 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
           {/* Signature */}
           {business?.signature && (
             <div className="mt-4 text-right">
-              <img src={business.signature} alt="Signature" className="h-12 ml-auto" />
+              <img src={business.signature} alt="Authorized signature" className="h-12 ml-auto" />
               <p className="text-sm text-gray-500">Authorized Signature</p>
             </div>
           )}
@@ -299,7 +299,7 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
         <div className="flex justify-between items-start">
           <div>
             {business?.logo ? (
-              <img src={business.logo} alt="Logo" className="h-12 mb-4 object-contain" />
+              <img src={business.logo} alt="Business logo" className="h-12 mb-4 object-contain" />
             ) : (
               <h1 className="text-2xl font-bold mb-2">{business?.name || 'Your Company'}</h1>
             )}
@@ -438,7 +438,7 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
 
         {business?.signature && (
           <div className="mt-6 text-right">
-            <img src={business.signature} alt="Signature" className="h-12 ml-auto" />
+            <img src={business.signature} alt="Authorized signature" className="h-12 ml-auto" />
             <p className="text-sm text-gray-500">Authorized Signature</p>
           </div>
         )}

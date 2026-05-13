@@ -103,6 +103,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             size="icon"
             onClick={onMenuToggle}
             className="lg:hidden"
+            aria-label="Open menu"
           >
             <Menu className="w-5 h-5" />
           </Button>
@@ -135,7 +136,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           {/* Notifications */}
           <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
                 <Bell className="w-5 h-5" />
                 {notifications.length > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center font-medium">
@@ -234,6 +235,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             size="icon"
             onClick={toggleTheme}
             className="rounded-lg"
+            aria-label="Toggle theme"
           >
             {settings.theme === 'dark' ? (
               <Sun className="w-5 h-5" />
@@ -248,7 +250,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             size="icon"
             onClick={signOut}
             className="rounded-lg"
-            title="Sign out"
+            aria-label="Sign out"
           >
             <LogOut className="w-5 h-5" />
           </Button>

@@ -706,7 +706,7 @@ export default function CreateInvoice() {
                   <div className="flex justify-between items-start mb-8">
                     <div className="flex items-center gap-3">
                       {currentBusiness?.logo && (
-                        <img src={currentBusiness.logo} alt="Logo" className="w-12 h-12 object-contain rounded" />
+                        <img src={currentBusiness.logo} alt="Company logo" className="w-12 h-12 object-contain rounded" />
                       )}
                       <div>
                         <h2 className="text-xl font-bold text-gray-900">{currentBusiness?.name || 'Your Company'}</h2>
@@ -791,7 +791,7 @@ export default function CreateInvoice() {
                   {currentBusiness?.signature && (
                     <div className="mt-8 flex justify-end">
                       <div className="text-center">
-                        <img src={currentBusiness.signature} alt="Signature" className="h-10 object-contain" />
+                        <img src={currentBusiness.signature} alt="Authorized signature" className="h-10 object-contain" />
                         <p className="text-xs text-gray-500 mt-1">Authorized Signature</p>
                       </div>
                     </div>
