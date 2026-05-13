@@ -299,7 +299,7 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
         <div className="flex justify-between items-start">
           <div>
             {business?.logo ? (
-              <img src={business.logo} alt="Logo" className="h-12 mb-4 object-contain" />
+              <img src={business.logo} alt="Business logo" className="h-12 mb-4 object-contain" />
             ) : (
               <h1 className="text-2xl font-bold mb-2">{business?.name || 'Your Company'}</h1>
             )}
