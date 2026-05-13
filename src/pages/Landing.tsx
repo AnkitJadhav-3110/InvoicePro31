@@ -81,6 +81,7 @@ export default function Landing() {
               size="icon"
               onClick={toggleTheme}
               className="rounded-lg"
+              aria-label="Toggle theme"
             >
               {settings.theme === 'dark' ? (
                 <Sun className="w-5 h-5" />
