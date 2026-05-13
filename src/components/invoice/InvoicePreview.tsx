@@ -155,7 +155,7 @@ export function InvoicePreview({ invoice, business, client, settings }: InvoiceP
             </div>
             <div className="text-right">
               {business?.logo ? (
-                <img src={business.logo} alt="Logo" className="h-14 ml-auto mb-3 object-contain" />
+                <img src={business.logo} alt="Business logo" className="h-14 ml-auto mb-3 object-contain" />
               ) : (
                 <div className="text-right mb-3">
                   <p className="text-lg font-bold text-gray-800">{business?.name || 'Your Company'}</p>
