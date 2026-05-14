@@ -189,7 +189,13 @@ export default function BusinessTools() {
   };
 
   return (
-    <div className="space-y-6 animate-slide-up">
+    <>
+      <Helmet>
+        <title>Business Tools | InvoicePro</title>
+        <meta name="description" content="Access terms templates, proposals, contracts, and other business tools in InvoicePro." />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="Business Tools"
         description="Ready-to-use templates for terms, emails, and proposals"

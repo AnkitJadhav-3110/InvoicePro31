@@ -339,5 +339,6 @@ export default function Dashboard() {
         <RecentActivityWidget />
       </div>
     </div>
+    </>
   );
 }

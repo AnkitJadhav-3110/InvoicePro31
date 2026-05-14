@@ -128,7 +128,13 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-6 animate-slide-up max-w-3xl">
+    <>
+      <Helmet>
+        <title>Settings | InvoicePro</title>
+        <meta name="description" content="Configure currency, tax rates, email preferences, and app settings in InvoicePro." />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <div className="space-y-6 animate-slide-up max-w-3xl">
       <PageHeader
         title="Settings"
         description="Configure your invoice generator preferences"

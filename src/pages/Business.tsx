@@ -147,7 +147,13 @@ export default function BusinessPage() {
   };
 
   return (
-    <div className="space-y-6 animate-slide-up">
+    <>
+      <Helmet>
+        <title>Business Profiles | InvoicePro</title>
+        <meta name="description" content="Manage your business profiles, logos, and tax settings for invoicing in InvoicePro." />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="Business Profiles"
         description="Manage your company information"

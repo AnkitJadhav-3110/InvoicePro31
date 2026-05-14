@@ -379,7 +379,13 @@ export default function CreateInvoice() {
   };
 
   return (
-    <div className="space-y-6 animate-slide-up">
+    <>
+      <Helmet>
+        <title>Create Invoice | InvoicePro</title>
+        <meta name="description" content="Create a new professional invoice with InvoicePro. Choose templates, add items, and send to clients." />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <div className="space-y-6 animate-slide-up">
       <PageHeader
         title={editId ? 'Edit Invoice' : 'Create Invoice'}
         description={editId ? `Editing ${invoiceNumber}` : 'Fill in the details to generate your invoice'}
