@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useMemo, useState, useRef } from 'react';
 import { Upload, Plus, Trash2, Save, Move, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
@@ -141,7 +142,17 @@ export default function TemplateEditor() {
   };
 
   return (
-    <div className="space-y-6 animate-slide-up">
+    <>
+      <Helmet>
+        <title>Templates | InvoicePro</title>
+        <meta name="description" content="Design and customize invoice templates with our drag-and-drop template editor in InvoicePro." />
+        <meta name="robots" content="noindex, nofollow" />
+        <meta property="og:title" content="Templates | InvoicePro" />
+        <meta property="og:description" content="Design and customize invoice templates with our drag-and-drop template editor in InvoicePro." />
+        <meta property="og:url" content="https://invoicepro31.lovable.app/templates" />
+        <link rel="canonical" href="https://invoicepro31.lovable.app/templates" />
+      </Helmet>
+      <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="Template Editor"
         description="Create custom invoice templates by uploading your design and mapping fields"
@@ -393,5 +404,6 @@ export default function TemplateEditor() {
         </Card>
       )}
     </div>
+    </>
   );
 }

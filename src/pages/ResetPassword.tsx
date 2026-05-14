@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -88,7 +89,17 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <>
+      <Helmet>
+        <title>Reset Password | InvoicePro</title>
+        <meta name="description" content="Reset your InvoicePro password securely." />
+        <meta name="robots" content="noindex, nofollow" />
+        <meta property="og:title" content="Reset Password | InvoicePro" />
+        <meta property="og:description" content="Reset your InvoicePro password securely." />
+        <meta property="og:url" content="https://invoicepro31.lovable.app/reset-password" />
+        <link rel="canonical" href="https://invoicepro31.lovable.app/reset-password" />
+      </Helmet>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Set New Password</CardTitle>
@@ -112,5 +123,6 @@ export default function ResetPassword() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }

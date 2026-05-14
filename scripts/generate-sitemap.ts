@@ -10,9 +10,10 @@ interface SitemapEntry {
   priority?: string;
 }
 
+// Only public, indexable routes. Authenticated and auth pages are excluded
+// because they use noindex robots meta tags.
 const entries: SitemapEntry[] = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
-  { path: "/auth", changefreq: "monthly", priority: "0.5" },
 ];
 
 function generateSitemap(entries: SitemapEntry[]) {

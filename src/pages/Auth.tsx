@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -78,7 +79,17 @@ export default function Auth() {
   if (user) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <>
+      <Helmet>
+        <title>Sign In | InvoicePro</title>
+        <meta name="description" content="Sign in or create an account to start creating professional invoices with InvoicePro." />
+        <meta name="robots" content="noindex, nofollow" />
+        <meta property="og:title" content="Sign In | InvoicePro" />
+        <meta property="og:description" content="Sign in or create an account to start creating professional invoices with InvoicePro." />
+        <meta property="og:url" content="https://invoicepro31.lovable.app/auth" />
+        <link rel="canonical" href="https://invoicepro31.lovable.app/auth" />
+      </Helmet>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
@@ -100,6 +111,7 @@ export default function Auth() {
         </Tabs>
       </div>
     </div>
+    </>
   );
 }
 

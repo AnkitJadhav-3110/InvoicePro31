@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
@@ -122,7 +123,17 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8 animate-slide-up">
+    <>
+      <Helmet>
+        <title>Dashboard | InvoicePro</title>
+        <meta name="description" content="Track revenue, outstanding payments, and invoice activity from your InvoicePro dashboard." />
+        <meta name="robots" content="noindex, nofollow" />
+        <meta property="og:title" content="Dashboard | InvoicePro" />
+        <meta property="og:description" content="Track revenue, outstanding payments, and invoice activity from your InvoicePro dashboard." />
+        <meta property="og:url" content="https://invoicepro31.lovable.app/dashboard" />
+        <link rel="canonical" href="https://invoicepro31.lovable.app/dashboard" />
+      </Helmet>
+      <div className="space-y-8 animate-slide-up">
       <PageHeader
         title="Dashboard"
         description="Overview of your invoicing activity"
@@ -328,5 +339,6 @@ export default function Dashboard() {
         <RecentActivityWidget />
       </div>
     </div>
+    </>
   );
 }

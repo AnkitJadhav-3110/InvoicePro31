@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useState, useCallback } from 'react';
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, Phone, MapPin, FileText, FileDown, Globe, ExternalLink } from 'lucide-react';
 import { useStore, Client } from '@/store/useStore';
@@ -206,7 +207,17 @@ export default function Clients() {
   };
 
   return (
-    <div className="space-y-6 animate-slide-up">
+    <>
+      <Helmet>
+        <title>Clients | InvoicePro</title>
+        <meta name="description" content="Manage your client list, view contact details, and track client invoice history in InvoicePro." />
+        <meta name="robots" content="noindex, nofollow" />
+        <meta property="og:title" content="Clients | InvoicePro" />
+        <meta property="og:description" content="Manage your client list, view contact details, and track client invoice history in InvoicePro." />
+        <meta property="og:url" content="https://invoicepro31.lovable.app/clients" />
+        <link rel="canonical" href="https://invoicepro31.lovable.app/clients" />
+      </Helmet>
+      <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="Clients"
         description="Manage your client database"
@@ -451,5 +462,6 @@ export default function Clients() {
         />
       )}
     </div>
+    </>
   );
 }

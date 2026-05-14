@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useState, useMemo } from 'react';
 import { RefreshCw, Trash2, Pause, Play, Calendar, Edit2 } from 'lucide-react';
 import { useStore, RecurringSchedule } from '@/store/useStore';
@@ -97,7 +98,13 @@ export default function RecurringInvoices() {
   };
 
   return (
-    <div className="space-y-8 animate-slide-up">
+    <>
+      <Helmet>
+        <title>Recurring Invoices | InvoicePro</title>
+        <meta name="description" content="Set up and manage recurring invoice schedules for automated billing in InvoicePro." />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <div className="space-y-8 animate-slide-up">
       <PageHeader
         title="Recurring Invoices"
         description="Manage your automated invoice schedules"
@@ -238,5 +245,6 @@ export default function RecurringInvoices() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </>
   );
 }

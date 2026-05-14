@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useState, useCallback } from 'react';
 import { Plus, Building2, Pencil, Trash2 } from 'lucide-react';
 import { useDataSync } from '@/hooks/useDataSync';
@@ -146,7 +147,13 @@ export default function BusinessPage() {
   };
 
   return (
-    <div className="space-y-6 animate-slide-up">
+    <>
+      <Helmet>
+        <title>Business Profiles | InvoicePro</title>
+        <meta name="description" content="Manage your business profiles, logos, and tax settings for invoicing in InvoicePro." />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="Business Profiles"
         description="Manage your company information"
@@ -404,5 +411,6 @@ export default function BusinessPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 }

@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDataSync } from '@/hooks/useDataSync';
@@ -259,7 +260,13 @@ export default function InvoiceHistory() {
   };
 
   return (
-    <div className="space-y-6 animate-slide-up">
+    <>
+      <Helmet>
+        <title>Invoice History | InvoicePro</title>
+        <meta name="description" content="View and manage your past invoices, track payments, and export records in InvoicePro." />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="Invoice History"
         description="View and manage all your invoices"
@@ -529,5 +536,6 @@ export default function InvoiceHistory() {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 }
