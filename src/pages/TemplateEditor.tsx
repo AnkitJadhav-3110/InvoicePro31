@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useMemo, useState, useRef } from 'react';
 import { Upload, Plus, Trash2, Save, Move, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';

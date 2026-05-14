@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useState, useCallback } from 'react';
 import { Plus, Building2, Pencil, Trash2 } from 'lucide-react';
 import { useDataSync } from '@/hooks/useDataSync';

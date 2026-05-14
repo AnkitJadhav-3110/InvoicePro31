@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useState, useCallback } from 'react';
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, Phone, MapPin, FileText, FileDown, Globe, ExternalLink } from 'lucide-react';
 import { useStore, Client } from '@/store/useStore';
