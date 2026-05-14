@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,7 +59,16 @@ export default function Landing() {
   }, [settings.theme]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <>
+      <Helmet>
+        <title>InvoicePro - Premium Invoice Generator</title>
+        <meta name="description" content="Create professional invoices with beautiful templates. Manage clients, track payments, and grow your business with InvoicePro." />
+        <link rel="canonical" href="https://invoicepro31.lovable.app/" />
+        <meta property="og:title" content="InvoicePro - Premium Invoice Generator" />
+        <meta property="og:description" content="Create professional invoices with beautiful templates. Manage clients, track payments, and grow your business with InvoicePro." />
+        <meta property="og:url" content="https://invoicepro31.lovable.app/" />
+      </Helmet>
+      <div className="min-h-screen bg-background text-foreground">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-[1200px] mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
