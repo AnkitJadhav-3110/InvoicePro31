@@ -411,5 +411,6 @@ export default function BusinessPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 }

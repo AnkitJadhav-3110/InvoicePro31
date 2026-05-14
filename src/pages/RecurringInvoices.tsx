@@ -245,5 +245,6 @@ export default function RecurringInvoices() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </>
   );
 }

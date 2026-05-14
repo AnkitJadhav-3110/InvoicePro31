@@ -404,5 +404,6 @@ export default function TemplateEditor() {
         </Card>
       )}
     </div>
+    </>
   );
 }

@@ -536,5 +536,6 @@ export default function InvoiceHistory() {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 }

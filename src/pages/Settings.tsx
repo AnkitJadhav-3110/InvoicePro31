@@ -334,5 +334,6 @@ export default function Settings() {
         Save Settings
       </Button>
     </div>
+    </>
   );
 }

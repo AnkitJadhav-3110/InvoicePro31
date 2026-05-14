@@ -810,5 +810,6 @@ export default function CreateInvoice() {
         </div>
       </div>
     </div>
+    </>
   );
 }
