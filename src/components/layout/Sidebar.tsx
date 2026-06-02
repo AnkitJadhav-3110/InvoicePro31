@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AppLogo } from '@/components/AppLogo';
+import { BrandWordmark } from '@/components/BrandWordmark';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -134,18 +135,17 @@ function SidebarContent({
         <button 
           onClick={onLogoClick}
           className={cn(
-            "flex items-center gap-3 transition-all duration-200",
+            "transition-all duration-200",
             "hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg",
-            collapsed ? "justify-center" : ""
           )}
+          aria-label="InvoicePro home"
         >
-          <div className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden">
-            <AppLogo className="w-8 h-8" />
-          </div>
-          {!collapsed && (
-            <span className="font-bold text-lg tracking-tight text-foreground">
-              Invoice<span className="text-primary">Pro</span>
-            </span>
+          {collapsed ? (
+            <div className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden">
+              <AppLogo className="w-8 h-8" />
+            </div>
+          ) : (
+            <BrandWordmark withLogo withTagline size="md" />
           )}
         </button>
         {showMobileClose && (
