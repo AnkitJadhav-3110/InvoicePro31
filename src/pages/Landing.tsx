@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { BrandWordmark } from '@/components/BrandWordmark';
 import {
   Accordion,
   AccordionContent,
@@ -493,12 +494,7 @@ export default function Landing() {
         <div className="max-w-[1200px] mx-auto px-6 sm:px-8">
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8">
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-                  <Receipt className="w-4 h-4 text-primary-foreground" />
-                </div>
-                <span className="font-bold">InvoicePro</span>
-              </div>
+              <BrandWordmark withLogo withTagline size="md" />
               <p className="text-sm text-muted-foreground">Professional invoicing made simple.</p>
             </div>
             <div className="space-y-3">
@@ -524,8 +520,9 @@ export default function Landing() {
               </ul>
             </div>
           </div>
-          <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} InvoicePro. All rights reserved.
+          <div className="border-t border-border mt-8 pt-8 flex flex-col items-center gap-3 text-sm text-muted-foreground">
+            <BrandWordmark size="sm" />
+            <span>© {new Date().getFullYear()} InvoicePro. All rights reserved.</span>
           </div>
         </div>
       </footer>
