@@ -22,6 +22,7 @@ import {
   Pencil,
   CheckSquare,
   X,
+  Link2,
 } from 'lucide-react';
 import { useStore, Invoice } from '@/store/useStore';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
