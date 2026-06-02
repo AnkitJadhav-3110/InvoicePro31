@@ -218,6 +218,25 @@ export default function InvoiceHistory() {
     await sendInvoiceWithPDF({ invoice, business, client, currencySymbol: settings.currencySymbol, settings });
     if (invoice.status === 'draft') updateInvoice(invoiceId, { status: 'sent' });
   };
+  const handleShareWithClient = async (invoiceId: string) => {
+    if (!(await ensureOwnsInvoice(invoiceId))) return;
+    if (!user) { toast.error('You must be signed in'); return; }
+    const invoice = invoices.find(i => i.id === invoiceId);
+    if (!invoice) return;
+    const client = clients.find(c => c.id === invoice.clientId);
+    const business = businesses.find(b => b.id === invoice.businessId);
+    if (!client || !business) { toast.error('Missing invoice data'); return; }
+    try {
+      const { url } = await createClientPortalLink({
+        invoice, client, business, settings, userId: user.id,
+      });
+      await navigator.clipboard.writeText(url).catch(() => {});
+      toast.success('Client portal link copied to clipboard', { description: url });
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not create share link');
+    }
+  };
+
 
   const handleExportCSV = () => {
     if (filteredInvoices.length === 0) { toast.error('No invoices to export'); return; }
