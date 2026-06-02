@@ -127,6 +127,7 @@ export default function ResetPassword() {
           </form>
         </CardContent>
       </Card>
+      </div>
     </div>
     </>
   );
