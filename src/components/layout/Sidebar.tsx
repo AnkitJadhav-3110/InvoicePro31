@@ -144,7 +144,7 @@ function SidebarContent({
           </div>
           {!collapsed && (
             <span className="font-bold text-lg tracking-tight text-foreground">
-              InvoicePro
+              Invoice<span className="text-primary">Pro</span>
             </span>
           )}
         </button>
