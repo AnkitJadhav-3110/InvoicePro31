@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { BrandWordmark } from '@/components/BrandWordmark';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -100,6 +101,10 @@ export default function ResetPassword() {
         <link rel="canonical" href="https://invoicepro31.lovable.app/reset-password" />
       </Helmet>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <BrandWordmark withLogo withTagline size="lg" align="center" />
+        </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Set New Password</CardTitle>
