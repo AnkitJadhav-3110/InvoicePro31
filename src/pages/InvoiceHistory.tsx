@@ -466,6 +466,9 @@ export default function InvoiceHistory() {
                             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleSendEmail(invoice.id); }}>
                               <Mail className="w-4 h-4 mr-2" />Send via Email
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareWithClient(invoice.id); }}>
+                              <Link2 className="w-4 h-4 mr-2" />Share Client Portal Link
+                            </DropdownMenuItem>
                             {invoice.status === 'draft' && (
                               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMarkSent(invoice.id); }}>
                                 <Send className="w-4 h-4 mr-2" />Mark as Sent
