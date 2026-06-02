@@ -114,7 +114,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             className="group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg"
             aria-label="Go to dashboard"
           >
-            <BrandWordmark withLogo withTagline size="md" className="group-hover:opacity-90 transition-opacity [&_.flex.flex-col]:hidden sm:[&_.flex.flex-col]:flex" />
+            <BrandWordmark withLogo withTagline size="md" className="group-hover:opacity-90 transition-opacity" />
           </button>
 
           {/* Page Title - Desktop */}
