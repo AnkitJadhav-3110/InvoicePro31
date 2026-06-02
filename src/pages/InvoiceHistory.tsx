@@ -70,6 +70,8 @@ import { downloadInvoicePDF } from '@/utils/pdfGenerator';
 import { exportInvoicesToCSV } from '@/utils/csvExport';
 import { sendInvoiceWithPDF } from '@/utils/emailService';
 import { InvoiceTimeline } from '@/components/invoice/InvoiceTimeline';
+import { createClientPortalLink } from '@/utils/clientPortal';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Dialog,
   DialogContent,
@@ -83,6 +85,7 @@ export default function InvoiceHistory() {
   const { invoices, clients, businesses, settings } = useStore();
   const { duplicateInvoice, deleteInvoice, updateInvoice } = useDataSync();
   const { ensureAuth, ensureOwnsInvoice } = useAuthGuard();
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
