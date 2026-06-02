@@ -318,6 +318,54 @@ export type Database = {
           },
         ]
       }
+      shared_invoice_links: {
+        Row: {
+          business_snapshot: Json
+          client_snapshot: Json
+          created_at: string
+          expires_at: string
+          id: string
+          invoice_id: string
+          invoice_snapshot: Json
+          paid: boolean
+          paid_at: string | null
+          revoked: boolean
+          settings_snapshot: Json
+          token: string
+          user_id: string
+        }
+        Insert: {
+          business_snapshot: Json
+          client_snapshot: Json
+          created_at?: string
+          expires_at: string
+          id?: string
+          invoice_id: string
+          invoice_snapshot: Json
+          paid?: boolean
+          paid_at?: string | null
+          revoked?: boolean
+          settings_snapshot?: Json
+          token: string
+          user_id: string
+        }
+        Update: {
+          business_snapshot?: Json
+          client_snapshot?: Json
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invoice_id?: string
+          invoice_snapshot?: Json
+          paid?: boolean
+          paid_at?: string | null
+          revoked?: boolean
+          settings_snapshot?: Json
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
