@@ -428,30 +428,72 @@ export async function generateInvoicePDF(
     pdf.text('Authorized Signature', PAGE_WIDTH - MARGIN_X - 22, sigY + 17, { align: 'center' });
   }
 
-  // ===== FOOTER =====
+  // ===== BRAND FOOTER + RUNNING HEADER ON EVERY PAGE =====
+  // Applied after all content so we know the final page count.
+  const totalPages = pdf.getNumberOfPages();
+  const brandPrimary: [number, number, number] = [37, 99, 235]; // hsl(221 83% 53%)
   const footerY = PAGE_HEIGHT - 18;
-  pdf.setDrawColor(COLORS.divider[0], COLORS.divider[1], COLORS.divider[2]);
-  pdf.setLineWidth(0.3);
-  pdf.line(MARGIN_X, footerY, PAGE_WIDTH - MARGIN_X, footerY);
+  const domain = business.email ? business.email.split('@')[1] : '';
+  const footerTagline = business.footerText || 'Thank you for your business.';
 
-  setColor(pdf, COLORS.lightGray);
-  pdf.setFontSize(7);
-  pdf.setFont('helvetica', 'normal');
+  for (let p = 1; p <= totalPages; p++) {
+    pdf.setPage(p);
 
-  const footerParts: string[] = [];
-  if (business.footerText) footerParts.push(business.footerText);
-  else footerParts.push('Thank you for your business.');
-  
-  pdf.text(footerParts.join('  •  '), PAGE_WIDTH / 2, footerY + 5, { align: 'center' });
+    // Running header for continuation pages (page 2+)
+    if (p > 1) {
+      setColor(pdf, COLORS.lightGray);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(7);
+      pdf.text(business.name || '', MARGIN_X, 10);
+      pdf.text(
+        `Invoice ${invoice.invoiceNumber} — continued`,
+        PAGE_WIDTH - MARGIN_X,
+        10,
+        { align: 'right' },
+      );
+    }
 
-  // Website
-  if (business.email) {
-    const domain = business.email.split('@')[1];
+    // Footer divider
+    pdf.setDrawColor(COLORS.divider[0], COLORS.divider[1], COLORS.divider[2]);
+    pdf.setLineWidth(0.3);
+    pdf.line(MARGIN_X, footerY, PAGE_WIDTH - MARGIN_X, footerY);
+
+    // Tagline (centered)
+    setColor(pdf, COLORS.lightGray);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7);
+    pdf.text(footerTagline, PAGE_WIDTH / 2, footerY + 5, { align: 'center' });
     if (domain) {
       pdf.setFontSize(6.5);
       setColor(pdf, COLORS.gray);
       pdf.text(`www.${domain}`, PAGE_WIDTH / 2, footerY + 9, { align: 'center' });
     }
+
+    // Brand wordmark (left): "Invoice" foreground + "Pro" in primary color
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(7);
+    setColor(pdf, COLORS.dark);
+    const brandInvoice = 'Invoice';
+    const brandPro = 'Pro';
+    pdf.text(brandInvoice, MARGIN_X, footerY + 5);
+    const invoiceWidth = pdf.getTextWidth(brandInvoice);
+    setColor(pdf, brandPrimary);
+    pdf.text(brandPro, MARGIN_X + invoiceWidth, footerY + 5);
+    setColor(pdf, COLORS.lightGray);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(6);
+    pdf.text('Professional Invoicing', MARGIN_X, footerY + 9);
+
+    // Page number (right)
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7);
+    setColor(pdf, COLORS.gray);
+    pdf.text(
+      `Page ${p} of ${totalPages}`,
+      PAGE_WIDTH - MARGIN_X,
+      footerY + 5,
+      { align: 'right' },
+    );
   }
 
   return pdf.output('blob');

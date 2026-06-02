@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { downloadInvoicePDF } from '@/utils/pdfGenerator';
+import { BrandWordmark } from '@/components/BrandWordmark';
 
 export default function ClientPortal() {
   const { token } = useParams<{ token: string }>();
@@ -151,9 +152,12 @@ export default function ClientPortal() {
                 />
               </div>
 
-              <p className="text-center text-xs text-muted-foreground">
-                Secured by InvoicePro · This link is private and unique to you.
-              </p>
+              <div className="flex flex-col items-center gap-2 pt-2">
+                <BrandWordmark size="sm" />
+                <p className="text-xs text-muted-foreground">
+                  Secured by InvoicePro · This link is private and unique to you.
+                </p>
+              </div>
             </>
           )}
         </div>

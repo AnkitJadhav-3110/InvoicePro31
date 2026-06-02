@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { lovable } from '@/integrations/lovable/index';
-import { AppLogo } from '@/components/AppLogo';
+import { BrandWordmark } from '@/components/BrandWordmark';
 
 function GoogleIcon() {
   return (
@@ -92,13 +92,7 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2">
-            <div className="bg-card border border-border p-2 rounded-lg overflow-hidden">
-              <AppLogo className="w-8 h-8" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">InvoicePro</h1>
-          </div>
-          <p className="text-muted-foreground">Professional invoicing made simple</p>
+          <BrandWordmark withLogo withTagline size="lg" align="center" />
         </div>
 
         <Tabs defaultValue="signin" className="w-full">
