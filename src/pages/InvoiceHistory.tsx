@@ -22,6 +22,7 @@ import {
   Pencil,
   CheckSquare,
   X,
+  Link2,
 } from 'lucide-react';
 import { useStore, Invoice } from '@/store/useStore';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
@@ -69,6 +70,8 @@ import { downloadInvoicePDF } from '@/utils/pdfGenerator';
 import { exportInvoicesToCSV } from '@/utils/csvExport';
 import { sendInvoiceWithPDF } from '@/utils/emailService';
 import { InvoiceTimeline } from '@/components/invoice/InvoiceTimeline';
+import { createClientPortalLink } from '@/utils/clientPortal';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Dialog,
   DialogContent,
@@ -82,6 +85,7 @@ export default function InvoiceHistory() {
   const { invoices, clients, businesses, settings } = useStore();
   const { duplicateInvoice, deleteInvoice, updateInvoice } = useDataSync();
   const { ensureAuth, ensureOwnsInvoice } = useAuthGuard();
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
@@ -214,6 +218,25 @@ export default function InvoiceHistory() {
     await sendInvoiceWithPDF({ invoice, business, client, currencySymbol: settings.currencySymbol, settings });
     if (invoice.status === 'draft') updateInvoice(invoiceId, { status: 'sent' });
   };
+  const handleShareWithClient = async (invoiceId: string) => {
+    if (!(await ensureOwnsInvoice(invoiceId))) return;
+    if (!user) { toast.error('You must be signed in'); return; }
+    const invoice = invoices.find(i => i.id === invoiceId);
+    if (!invoice) return;
+    const client = clients.find(c => c.id === invoice.clientId);
+    const business = businesses.find(b => b.id === invoice.businessId);
+    if (!client || !business) { toast.error('Missing invoice data'); return; }
+    try {
+      const { url } = await createClientPortalLink({
+        invoice, client, business, settings, userId: user.id,
+      });
+      await navigator.clipboard.writeText(url).catch(() => {});
+      toast.success('Client portal link copied to clipboard', { description: url });
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not create share link');
+    }
+  };
+
 
   const handleExportCSV = () => {
     if (filteredInvoices.length === 0) { toast.error('No invoices to export'); return; }
@@ -442,6 +465,9 @@ export default function InvoiceHistory() {
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleSendEmail(invoice.id); }}>
                               <Mail className="w-4 h-4 mr-2" />Send via Email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareWithClient(invoice.id); }}>
+                              <Link2 className="w-4 h-4 mr-2" />Share Client Portal Link
                             </DropdownMenuItem>
                             {invoice.status === 'draft' && (
                               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMarkSent(invoice.id); }}>

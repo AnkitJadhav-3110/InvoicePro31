@@ -19,6 +19,7 @@ import Settings from "@/pages/Settings";
 import Auth from "@/pages/Auth";
 import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "@/pages/NotFound";
+import ClientPortal from "@/pages/ClientPortal";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/portal/:token" element={<ClientPortal />} />
               <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/invoices/create" element={<CreateInvoice />} />
