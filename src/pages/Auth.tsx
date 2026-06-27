@@ -119,11 +119,10 @@ function ForgotPasswordLink() {
     e.preventDefault();
     if (!email) { toast.error('Please enter your email'); return; }
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
-    if (error) toast.error(error.message);
-    else setSent(true);
+    setSent(true);
     setLoading(false);
   };
 
