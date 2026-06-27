@@ -119,11 +119,10 @@ function ForgotPasswordLink() {
     e.preventDefault();
     if (!email) { toast.error('Please enter your email'); return; }
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
-    if (error) toast.error(error.message);
-    else setSent(true);
+    setSent(true);
     setLoading(false);
   };
 
@@ -160,7 +159,7 @@ function SignInForm() {
     e.preventDefault();
     setLoading(true);
     const { error } = await signIn(email, password);
-    if (error) toast.error(error.message);
+    if (error) toast.error('Invalid email or password. Please try again.');
     setLoading(false);
   };
 
@@ -213,9 +212,8 @@ function SignUpForm() {
     const pwError = validatePassword(password);
     if (pwError) { toast.error(pwError); return; }
     setLoading(true);
-    const { error } = await signUp(email, password);
-    if (error) toast.error(error.message);
-    else toast.success('Account created! Check your email to confirm.');
+    await signUp(email, password);
+    toast.success('If this email is not already registered, a confirmation link has been sent.');
     setLoading(false);
   };
 
