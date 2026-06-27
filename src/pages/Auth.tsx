@@ -213,9 +213,8 @@ function SignUpForm() {
     const pwError = validatePassword(password);
     if (pwError) { toast.error(pwError); return; }
     setLoading(true);
-    const { error } = await signUp(email, password);
-    if (error) toast.error(error.message);
-    else toast.success('Account created! Check your email to confirm.');
+    await signUp(email, password);
+    toast.success('If this email is not already registered, a confirmation link has been sent.');
     setLoading(false);
   };
 
