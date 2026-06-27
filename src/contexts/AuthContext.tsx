@@ -50,6 +50,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    try {
+      const { useStore } = await import('@/store/useStore');
+      useStore.setState({
+        businesses: [],
+        clients: [],
+        invoices: [],
+        customTemplates: [],
+        recurringSchedules: [],
+        currentBusinessId: null,
+        currentInvoice: null,
+      });
+      localStorage.removeItem('invoice-generator-storage');
+    } catch {
+      localStorage.removeItem('invoice-generator-storage');
+    }
   };
 
   return (
