@@ -160,7 +160,7 @@ function SignInForm() {
     e.preventDefault();
     setLoading(true);
     const { error } = await signIn(email, password);
-    if (error) toast.error(error.message);
+    if (error) toast.error('Invalid email or password. Please try again.');
     setLoading(false);
   };
 
