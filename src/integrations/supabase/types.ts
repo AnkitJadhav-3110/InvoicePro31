@@ -371,7 +371,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_shared_invoice: {
+        Args: { _token: string }
+        Returns: {
+          business_snapshot: Json
+          client_snapshot: Json
+          created_at: string
+          expires_at: string
+          id: string
+          invoice_id: string
+          invoice_snapshot: Json
+          paid: boolean
+          paid_at: string | null
+          revoked: boolean
+          settings_snapshot: Json
+          token: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "shared_invoice_links"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mark_shared_invoice_paid: { Args: { _token: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
