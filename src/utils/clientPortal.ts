@@ -54,23 +54,15 @@ export async function createClientPortalLink(params: CreatePortalLinkParams): Pr
 }
 
 export async function fetchPortalInvoice(token: string): Promise<PortalLinkRow | null> {
-  const { data, error } = await supabase
-    .from('shared_invoice_links')
-    .select('*')
-    .eq('token', token)
-    .maybeSingle();
+  const { data, error } = await (supabase as any).rpc('get_shared_invoice', { _token: token });
   if (error) throw error;
-  if (!data) return null;
-  if (data.revoked) throw new Error('This link has been revoked.');
-  if (new Date(data.expires_at).getTime() <= Date.now()) throw new Error('This link has expired.');
-  return data as unknown as PortalLinkRow;
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return null;
+  return row as PortalLinkRow;
 }
 
 export async function markPortalInvoicePaid(token: string): Promise<void> {
-  const { error } = await supabase
-    .from('shared_invoice_links')
-    .update({ paid: true, paid_at: new Date().toISOString() })
-    .eq('token', token);
+  const { error } = await (supabase as any).rpc('mark_shared_invoice_paid', { _token: token });
   if (error) throw error;
 }
 
