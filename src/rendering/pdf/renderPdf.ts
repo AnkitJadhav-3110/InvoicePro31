@@ -261,7 +261,6 @@ function drawTableRow(ctx: Ctx, item: RenderModel['items'][number], index: numbe
 
 function drawItems(ctx: Ctx) {
   ctx.y = drawTableHeader(ctx);
-  ctx.items = ctx.items ?? 0;
   ctx.model.items.forEach((item, i) => {
     if (ctx.y + 12 > PAGE_H - 30) {
       ctx.pdf.addPage();
