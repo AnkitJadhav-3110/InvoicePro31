@@ -15,10 +15,8 @@ export default defineConfig({
       reportsDirectory: './coverage',
       include: [
         'src/utils/pdfGenerator.ts',
-        'src/utils/pdfCorporateBlue.ts',
-        'src/utils/pdfMinimalBW.ts',
-        'src/utils/pdfCreative.ts',
-        'src/utils/pdfDarkLuxury.ts',
+        'src/rendering/**/*.ts',
+        'src/rendering/**/*.tsx',
         'src/utils/customTemplatePDF.ts',
         'src/utils/imageExport.ts',
         'src/hooks/useAuthGuard.ts',
