@@ -450,7 +450,7 @@ export async function renderPdf(
   const pdf = new jsPDF('p', 'mm', 'a4');
   const marginX = cfg.spacing.pageMarginX;
   const marginY = cfg.spacing.pageMarginY;
-  const ctx: Ctx & { items?: number } = {
+  const ctx: Ctx = {
     pdf,
     cfg,
     model,
