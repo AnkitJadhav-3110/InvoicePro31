@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import QRCode from 'qrcode';
-import type { RenderModel, TemplateConfig, ItemsColumn } from './types';
-import { formatCurrency, formatDate } from './buildRenderModel';
+import type { RenderModel, TemplateConfig, ItemsColumn } from '../types';
+import { formatCurrency, formatDate } from '../buildRenderModel';
 
 interface Props {
   model: RenderModel;
