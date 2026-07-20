@@ -38,18 +38,18 @@ import { toast } from 'sonner';
 import { downloadInvoicePDF } from '@/utils/pdfGenerator';
 import { invoiceSchema, getFirstError } from '@/utils/validation';
 import { RecurringInvoiceDialog } from '@/components/recurring/RecurringInvoiceDialog';
+import { InvoicePreview } from '@/components/invoice/InvoicePreview';
+import { listTemplates } from '@/rendering/registry';
 
-const templates: { id: InvoiceTemplate; name: string; description: string }[] = [
-  { id: 'minimal', name: 'Minimal White', description: 'Clean and simple' },
-  { id: 'modern', name: 'Modern Gradient', description: 'Bold and contemporary' },
-  { id: 'corporate', name: 'Corporate Blue', description: 'Professional and trustworthy' },
-  { id: 'dark', name: 'Bold Dark', description: 'Striking dark theme' },
-  { id: 'clean', name: 'Clean Business', description: 'Elegant and refined' },
-  { id: 'teal', name: 'Corporate Teal', description: 'Modern with accent bar' },
-  { id: 'bw', name: 'Minimalist B&W', description: 'Black and white elegance' },
-  { id: 'creative', name: 'Creative Colorful', description: 'Vibrant coral and orange' },
-  { id: 'luxury', name: 'Dark Luxury', description: 'Navy & gold premium' },
-];
+// Template list is driven entirely by the rendering registry so the selector,
+// live preview, and downloaded PDF can never disagree about which templates
+// exist or what they render.
+const templates: { id: InvoiceTemplate; name: string; description: string }[] =
+  listTemplates().map((t) => ({
+    id: t.id as InvoiceTemplate,
+    name: t.name,
+    description: `${t.header.variant} header · ${t.footer.variant} footer`,
+  }));
 
 const paymentTerms = [
   { value: 'net7', label: 'Net 7 (7 days)', days: 7 },
@@ -708,102 +708,28 @@ export default function CreateInvoice() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-auto max-h-[800px] rounded-lg border bg-muted/30 p-8">
-                <div className="bg-white rounded-lg shadow-lg p-6 min-h-[600px] relative">
-                  <div className="flex justify-between items-start mb-8">
-                    <div className="flex items-center gap-3">
-                      {currentBusiness?.logo && (
-                        <img src={currentBusiness.logo} alt="Company logo" className="w-12 h-12 object-contain rounded" />
-                      )}
-                      <div>
-                        <h2 className="text-xl font-bold text-gray-900">{currentBusiness?.name || 'Your Company'}</h2>
-                        <p className="text-sm text-gray-600">{currentBusiness?.email}</p>
-                        <p className="text-sm text-gray-600">{currentBusiness?.phone}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <h1 className="text-2xl font-bold text-primary">INVOICE</h1>
-                      <p className="text-lg font-semibold">{invoiceNumber}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-8 mb-8">
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-500 mb-2">Bill To</h3>
-                      <p className="font-semibold">{selectedClient?.name || 'Select a client'}</p>
-                      <p className="text-sm text-gray-600">{selectedClient?.email}</p>
-                      <p className="text-sm text-gray-600">{selectedClient?.address}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-500 mb-2">Details</h3>
-                      <p className="text-sm"><span className="text-gray-500">Date:</span> {invoiceDate}</p>
-                      <p className="text-sm"><span className="text-gray-500">Due:</span> {dueDate}</p>
-                    </div>
-                  </div>
-
-                  <table className="w-full mb-8">
-                    <thead>
-                      <tr className="border-b-2 border-gray-200">
-                        <th className="text-left py-2 text-sm font-semibold text-gray-600">Description</th>
-                        <th className="text-center py-2 text-sm font-semibold text-gray-600">Qty</th>
-                        <th className="text-right py-2 text-sm font-semibold text-gray-600">Price</th>
-                        <th className="text-right py-2 text-sm font-semibold text-gray-600">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items.map((item) => (
-                        <tr key={item.id} className="border-b border-gray-100">
-                          <td className="py-3 text-sm">{item.description || 'Item description'}</td>
-                          <td className="py-3 text-sm text-center">{item.quantity}</td>
-                          <td className="py-3 text-sm text-right">{formatCurrency(item.price)}</td>
-                          <td className="py-3 text-sm text-right font-medium">
-                            {formatCurrency(item.quantity * item.price * (1 - item.discount / 100))}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  <div className="flex justify-end">
-                    <div className="w-64 space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Subtotal</span>
-                        <span>{formatCurrency(calculations.subtotal)}</span>
-                      </div>
-                      {calculations.discountTotal > 0 && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Discount</span>
-                          <span className="text-red-500">-{formatCurrency(calculations.discountTotal)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Tax</span>
-                        <span>{formatCurrency(calculations.taxTotal)}</span>
-                      </div>
-                      <div className="flex justify-between pt-2 border-t text-lg font-bold text-primary">
-                        <span>Total</span>
-                        <span>{formatCurrency(calculations.total)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {showPaidStamp && (
-                    <div className="absolute top-20 right-20 transform rotate-12">
-                      <div className="border-4 border-green-500 text-green-500 px-6 py-2 rounded-lg text-2xl font-bold opacity-80">
-                        PAID
-                      </div>
-                    </div>
-                  )}
-
-                  {currentBusiness?.signature && (
-                    <div className="mt-8 flex justify-end">
-                      <div className="text-center">
-                        <img src={currentBusiness.signature} alt="Authorized signature" className="h-10 object-contain" />
-                        <p className="text-xs text-gray-500 mt-1">Authorized Signature</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+              <div className="overflow-auto max-h-[800px] rounded-lg border bg-muted/30 p-4">
+                <InvoicePreview
+                  invoice={{
+                    invoiceNumber,
+                    businessId: currentBusinessId || '',
+                    clientId: selectedClientId,
+                    items,
+                    subtotal: calculations.subtotal,
+                    taxTotal: calculations.taxTotal,
+                    discountTotal: calculations.discountTotal,
+                    total: calculations.total,
+                    template,
+                    createdAt: new Date(invoiceDate).toISOString(),
+                    dueDate: new Date(dueDate || invoiceDate).toISOString(),
+                    notes,
+                    paymentQR,
+                    isPaid: showPaidStamp,
+                  }}
+                  business={currentBusiness}
+                  client={selectedClient}
+                  settings={{ ...settings, currencySymbol: invoiceCurrency }}
+                />
               </div>
             </CardContent>
           </Card>
