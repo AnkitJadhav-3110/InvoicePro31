@@ -38,18 +38,18 @@ import { toast } from 'sonner';
 import { downloadInvoicePDF } from '@/utils/pdfGenerator';
 import { invoiceSchema, getFirstError } from '@/utils/validation';
 import { RecurringInvoiceDialog } from '@/components/recurring/RecurringInvoiceDialog';
+import { InvoicePreview } from '@/components/invoice/InvoicePreview';
+import { listTemplates } from '@/rendering/registry';
 
-const templates: { id: InvoiceTemplate; name: string; description: string }[] = [
-  { id: 'minimal', name: 'Minimal White', description: 'Clean and simple' },
-  { id: 'modern', name: 'Modern Gradient', description: 'Bold and contemporary' },
-  { id: 'corporate', name: 'Corporate Blue', description: 'Professional and trustworthy' },
-  { id: 'dark', name: 'Bold Dark', description: 'Striking dark theme' },
-  { id: 'clean', name: 'Clean Business', description: 'Elegant and refined' },
-  { id: 'teal', name: 'Corporate Teal', description: 'Modern with accent bar' },
-  { id: 'bw', name: 'Minimalist B&W', description: 'Black and white elegance' },
-  { id: 'creative', name: 'Creative Colorful', description: 'Vibrant coral and orange' },
-  { id: 'luxury', name: 'Dark Luxury', description: 'Navy & gold premium' },
-];
+// Template list is driven entirely by the rendering registry so the selector,
+// live preview, and downloaded PDF can never disagree about which templates
+// exist or what they render.
+const templates: { id: InvoiceTemplate; name: string; description: string }[] =
+  listTemplates().map((t) => ({
+    id: t.id as InvoiceTemplate,
+    name: t.name,
+    description: `${t.header.variant} header · ${t.footer.variant} footer`,
+  }));
 
 const paymentTerms = [
   { value: 'net7', label: 'Net 7 (7 days)', days: 7 },
