@@ -41,22 +41,25 @@ export function validateTemplateConfig(t: TemplateConfig): void {
   if (!t.name || typeof t.name !== 'string') err('missing string name');
 
   if (!t.colors) err('missing colors');
+  const colors = t.colors as unknown as Record<string, unknown>;
   for (const k of REQUIRED_COLOR_KEYS) {
-    const v = (t.colors as Record<string, unknown>)[k];
+    const v = colors[k];
     if (typeof v !== 'string' || !HEX_RE.test(v)) err(`colors.${k} must be a #rrggbb hex`);
   }
 
   if (!t.typography) err('missing typography');
+  const typo = t.typography as unknown as Record<string, unknown>;
   for (const k of REQUIRED_TYPOGRAPHY_KEYS) {
-    if ((t.typography as Record<string, unknown>)[k] === undefined) err(`typography.${k} missing`);
+    if (typo[k] === undefined) err(`typography.${k} missing`);
   }
   if (!['helvetica', 'times', 'courier'].includes(t.typography.family)) {
     err(`typography.family must be helvetica|times|courier`);
   }
 
   if (!t.spacing) err('missing spacing');
+  const spacing = t.spacing as unknown as Record<string, unknown>;
   for (const k of REQUIRED_SPACING_KEYS) {
-    if (typeof (t.spacing as Record<string, unknown>)[k] !== 'number') err(`spacing.${k} must be a number`);
+    if (typeof spacing[k] !== 'number') err(`spacing.${k} must be a number`);
   }
 
   if (!t.header?.titleLabel) err('header.titleLabel required');
