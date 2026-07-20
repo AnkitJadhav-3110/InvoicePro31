@@ -69,8 +69,8 @@ describe('Multi-page regression — every template', () => {
       const headerHits = countHeaderOccurrences(text, amountLabel);
       expect(headerHits).toBeGreaterThanOrEqual(pages - 1); // totals may occupy last page alone
 
-      // Totals appear once and match the render model.
-      expect(text).toContain('660.00');
+      // Grand total for 40 items × qty 2 × $100 + 10% tax = 8,800.00
+      expect(text).toContain('8,800.00');
     });
   }
 });
